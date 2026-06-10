@@ -23,6 +23,9 @@ const MESSAGES: Record<string, string[]> = {
     '偵測到任務積壓，動態調度 2 位員工支援軟體線',
     '將 Iris 的成交回報轉交 Fern 做毛利核算',
     '同步跨團隊里程碑，標記 2 項風險待架構師裁決',
+    '收斂晨會結論，把 5 個決策拆成可指派的任務',
+    '平衡今日工作負載，Steve 的佇列勻 3 項給 Quinn',
+    '盤點本週交付，準時率 96%，2 項提前完成',
   ],
   cora: [
     '拆解 Q3 產品需求為 12 個 user story',
@@ -31,6 +34,8 @@ const MESSAGES: Record<string, string[]> = {
     '撰寫官網改版 PRD v2，待 CEO 簽核',
     '標記里程碑 M3 完成，路線圖同步前移一週',
     '整理本週需求變更，3 項進入下個衝刺待辦',
+    '替模糊的需求補上驗收條件，退回 1 張規格重寫',
+    '和分銷線對齊報價流程，畫出第一版狀態圖',
   ],
   steve: [
     '修復 navbar 響應式斷點，已推送至 staging',
@@ -39,6 +44,9 @@ const MESSAGES: Record<string, string[]> = {
     '接上 Live Activity 即時流，進出場動畫就緒',
     '優化首屏 LCP 至 1.1s，主視覺圖改 lazy 載入',
     '修正深色模式對比度，通過 WCAG AA 檢測',
+    '統一全站行高與字距，正文閱讀體驗再升一級',
+    '補齊鍵盤焦點環，所有可點擊元素都能 tab 到',
+    '把 footer 抽成共用元件，三個頁面收尾一致',
   ],
   apple: [
     'API 延遲降回 45ms，自動擴容完成',
@@ -47,6 +55,8 @@ const MESSAGES: Record<string, string[]> = {
     '完成資料庫每日備份，快照已上傳至冷儲存',
     '輪替 TLS 憑證，到期前 30 天自動更新完成',
     '攔截異常流量尖峰，已套用速率限制規則',
+    '凌晨例行巡檢完成，全服務綠燈、無待處理告警',
+    '把建置時間從 18s 壓到 11s，快取命中率拉高',
   ],
   iris: [
     '發送 LED 透明屏報價單給 3 位客戶',
@@ -55,6 +65,8 @@ const MESSAGES: Record<string, string[]> = {
     '跟進上週展會名單，首輪回覆率達 42%',
     '洽談年度框架合約，已進入議價階段',
     '整理客戶規格需求，轉交 Cargo 查庫存',
+    '回收一筆沉睡三個月的詢價，客戶重啟評估',
+    '彙整本週商機，新增 7 筆進入漏斗、2 筆待報價',
   ],
   penny: [
     '回覆客訴 #4821，客戶滿意度回填 4.8/5',
@@ -63,6 +75,8 @@ const MESSAGES: Record<string, string[]> = {
     '當日結案售後工單 12 件，零逾期',
     '更新常見問題庫，新增 5 條高頻條目',
     '回收客戶回饋，彙整為 3 點產品改善建議',
+    '主動回訪上月成交客戶，確認到貨與使用狀況',
+    '把一通急件客訴在 8 分鐘內安撫並排程到府檢修',
   ],
 }
 
@@ -190,7 +204,7 @@ export function LiveActivity() {
           <h2 className="mt-4 font-display text-3xl font-semibold tracking-tight text-text-primary sm:text-4xl">
             不是宣稱，是證據。
           </h2>
-          <p className="mt-4 max-w-2xl text-base leading-relaxed text-text-secondary">
+          <p className="mt-4 max-w-2xl text-base leading-[1.8] text-text-secondary">
             這是蜂巢的即時營運流（real-time AI operations）。每一行都是某個自主
             AI 代理（autonomous agent）剛剛完成的任務 — 即時、未經修飾、持續滾動。
           </p>
@@ -231,7 +245,7 @@ export function LiveActivity() {
                       i === 0 ? 'hive-breathe' : ''
                     }`}
                   />
-                  <span className="flex-1 leading-relaxed text-text-secondary">
+                  <span className="flex-1 leading-[1.8] text-text-secondary">
                     <span className="font-semibold text-honey-400">
                       [{entry.name}·{entry.abbr}]
                     </span>{' '}

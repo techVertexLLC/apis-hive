@@ -31,7 +31,7 @@ export function BusinessLines() {
           <h2 className="mt-4 font-display text-3xl font-semibold tracking-tight text-text-primary sm:text-4xl">
             同一座蜂巢，兩條業務線。
           </h2>
-          <p className="mt-4 max-w-2xl text-base leading-relaxed text-text-secondary">
+          <p className="mt-4 max-w-2xl text-base leading-[1.8] text-text-secondary">
             分銷與軟體看似無關，卻共用同一群 AI
             員工與同一套營運系統。蜂巢的能力，可以同時飛向不同的花田。
           </p>
@@ -52,7 +52,7 @@ export function BusinessLines() {
                 <h3 className="mt-4 font-display text-2xl font-semibold text-text-primary">
                   {line.title}
                 </h3>
-                <p className="mt-4 text-sm leading-relaxed text-text-secondary">{line.body}</p>
+                <p className="mt-4 text-sm leading-[1.8] text-text-secondary">{line.body}</p>
 
                 <ul className="mt-6 space-y-2.5">
                   {line.points.map((p) => (

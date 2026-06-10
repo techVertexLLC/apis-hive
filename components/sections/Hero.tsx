@@ -110,10 +110,9 @@ export function Hero() {
         </motion.h1>
 
         <motion.div variants={fadeUp} className="mt-6 max-w-2xl sm:mt-7">
-          <p className="text-base leading-relaxed text-text-secondary sm:text-xl">
-            Apis 是一家 AI-native
-            公司。兩位人類架構師，領著一支自主運作的 AI 勞動力（autonomous AI
-            workforce），組成一個永不停歇的蜂巢。
+          <p className="text-base leading-[1.8] text-text-secondary sm:text-xl">
+            Apis 是一家 AI-native 公司。兩位人類定方向，一群 AI
+            員工把事情做完 — 沒有打卡、沒有交接、沒有熄燈的時刻，只有一座持續運轉的蜂巢。
           </p>
           <p className="mt-5 font-mono text-sm tracking-[0.28em] text-text-muted sm:text-base">
             2 humans · 13 AI · 0 downtime

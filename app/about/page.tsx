@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import Link from 'next/link'
 import { Reveal, RevealGroup, RevealItem } from '@/components/ui/Reveal'
 import { EMPLOYEE_COUNT } from '@/lib/employees'
 
@@ -102,7 +103,7 @@ export default function AboutPage() {
               <span className="text-honey-500">一家公司。</span>
             </h1>
           </Reveal>
-          <Reveal className="mt-7 space-y-5 text-lg leading-relaxed text-text-secondary" delay={0.1}>
+          <Reveal className="mt-7 max-w-3xl space-y-5 text-lg leading-[1.8] text-text-secondary" delay={0.1}>
             <p>
               「Apis」在拉丁文意指蜜蜂。Apis 是一家 AI-native
               公司：沒有龐大的人力編制，只有兩位人類架構師，與一群從不下班的 AI 員工。
@@ -125,7 +126,7 @@ export default function AboutPage() {
             <h2 className="mt-4 font-display text-3xl font-semibold tracking-tight text-text-primary sm:text-4xl">
               蜂箱模型
             </h2>
-            <p className="mt-4 max-w-2xl text-base leading-relaxed text-text-secondary">
+            <p className="mt-4 max-w-2xl text-base leading-[1.8] text-text-secondary">
               這不是行銷包裝，而是一張去中心化組織的運作架構圖。它用最直白的方式，定錨了出力者、出資者、供料者與利潤共享的邊界。
             </p>
           </Reveal>
@@ -143,7 +144,7 @@ export default function AboutPage() {
                   </p>
                   <p className="mt-1 font-mono text-sm text-honey-400">{row.zh}</p>
                 </div>
-                <p className="text-base leading-relaxed text-text-secondary">
+                <p className="text-base leading-[1.8] text-text-secondary">
                   <span className="font-semibold text-text-primary">{row.term}。</span>
                   {row.def}
                 </p>
@@ -156,7 +157,7 @@ export default function AboutPage() {
             <h3 className="font-display text-2xl font-semibold tracking-tight text-text-primary">
               商業本質
             </h3>
-            <p className="mt-3 max-w-2xl text-base leading-relaxed text-text-secondary">
+            <p className="mt-3 max-w-2xl text-base leading-[1.8] text-text-secondary">
               這座蜂箱模型代表了我們對系統設計的三大核心堅持：
             </p>
           </Reveal>
@@ -171,7 +172,7 @@ export default function AboutPage() {
                 <h4 className="font-display text-lg font-semibold text-text-primary">
                   {p.title}
                 </h4>
-                <p className="mt-3 text-sm leading-relaxed text-text-secondary">{p.body}</p>
+                <p className="mt-3 text-sm leading-[1.8] text-text-secondary">{p.body}</p>
               </RevealItem>
             ))}
           </RevealGroup>
@@ -188,7 +189,7 @@ export default function AboutPage() {
             <h2 className="mt-4 font-display text-3xl font-semibold tracking-tight text-text-primary sm:text-4xl">
               三大信念
             </h2>
-            <p className="mt-4 max-w-2xl text-base leading-relaxed text-text-secondary">
+            <p className="mt-4 max-w-2xl text-base leading-[1.8] text-text-secondary">
               這些不是口號，而是我們每天做決策的依據。
             </p>
           </Reveal>
@@ -207,7 +208,7 @@ export default function AboutPage() {
                   <h3 className="font-display text-2xl font-semibold tracking-tight text-text-primary">
                     {b.title}
                   </h3>
-                  <p className="mt-3 max-w-2xl text-base leading-relaxed text-text-secondary">
+                  <p className="mt-3 max-w-2xl text-base leading-[1.8] text-text-secondary">
                     {b.body}
                   </p>
                 </div>
@@ -230,7 +231,7 @@ export default function AboutPage() {
               <br />
               <span className="text-honey-500">Fertile the Field</span>
             </h2>
-            <p className="mx-auto mt-6 max-w-xl text-base leading-relaxed text-text-secondary">
+            <p className="mx-auto mt-6 max-w-xl text-base leading-[1.8] text-text-secondary">
               建造蜂箱，肥沃花田。我們把公司做成一套能自我運轉的系統，也讓每一個供應夥伴、每一位投資人，都能在這片花田裡共同採收。
             </p>
           </Reveal>
@@ -243,6 +244,12 @@ export default function AboutPage() {
               一起建造蜂箱
               <span className="transition-transform duration-300 group-hover:translate-x-0.5">→</span>
             </a>
+            <Link
+              href="/team"
+              className="inline-flex items-center gap-2 rounded-full border border-comb-line px-7 py-3 text-sm font-medium text-text-primary transition-all duration-300 hover:scale-[1.03] hover:border-honey-500/40 hover:bg-bg-overlay active:scale-[0.98]"
+            >
+              認識 AI 員工
+            </Link>
           </Reveal>
         </div>
       </section>

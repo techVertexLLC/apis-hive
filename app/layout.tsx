@@ -3,6 +3,7 @@ import { Fraunces, Inter, JetBrains_Mono } from 'next/font/google'
 import './globals.css'
 import { buildMetadata, organizationJsonLd } from '@/lib/seo'
 import { Navbar } from '@/components/Navbar'
+import { SiteFooter } from '@/components/SiteFooter'
 
 // Fraunces — 標題（可變字重 + optical size，蜂蜜般圓潤）
 const fraunces = Fraunces({
@@ -45,6 +46,7 @@ export default function RootLayout({
       <body className="min-h-full bg-bg-base text-text-primary">
         <Navbar />
         {children}
+        <SiteFooter />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{

@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { Reveal, RevealGroup, RevealItem } from '@/components/ui/Reveal'
 import { EMPLOYEES, STAGE_META } from '@/lib/employees'
 
@@ -16,7 +17,7 @@ export function HiveRoster() {
           <h2 className="mt-4 font-display text-3xl font-semibold tracking-tight text-text-primary sm:text-4xl">
             員工名冊
           </h2>
-          <p className="mt-4 max-w-2xl text-base leading-relaxed text-text-secondary">
+          <p className="mt-4 max-w-2xl text-base leading-[1.8] text-text-secondary">
             每一格都是一位 AI 員工（AI employee）。這支 AI
             團隊成員（AI team members）各司其職，我們也坦誠標示每位的成熟度 —
             上線、測試，或還在孵化。將游標移上去看看他們是誰。
@@ -97,10 +98,10 @@ export function HiveRoster() {
                   <p className="mt-2 font-mono text-[11px] text-honey-400">
                     {emp.department} · {emp.phase}
                   </p>
-                  <p className="mt-2 text-xs italic leading-relaxed text-text-secondary">
+                  <p className="mt-2 text-xs italic leading-[1.8] text-text-secondary">
                     「{emp.personality}」
                   </p>
-                  <p className="mt-2 text-xs leading-relaxed text-text-secondary">{emp.bio}</p>
+                  <p className="mt-2 text-xs leading-[1.8] text-text-secondary">{emp.bio}</p>
                   <ul className="mt-3 flex flex-wrap gap-1.5">
                     {emp.focus.map((f) => (
                       <li
@@ -116,6 +117,20 @@ export function HiveRoster() {
             )
           })}
         </RevealGroup>
+
+        {/* 名冊收尾：手機無 hover 卡，導向 /team 看完整檔案；桌面也提供深入入口 */}
+        <Reveal className="mt-12 flex flex-col items-center gap-3 text-center sm:mt-14" delay={0.1}>
+          <p className="text-sm text-text-muted sm:hidden">
+            在手機上看不到懸停細節？到團隊頁讀每位員工的完整檔案。
+          </p>
+          <Link
+            href="/team"
+            className="group inline-flex items-center gap-2 rounded-full border border-comb-line bg-bg-raised/40 px-6 py-3 text-sm font-medium text-text-primary transition-all duration-300 hover:scale-[1.03] hover:border-honey-500/40 hover:bg-bg-overlay active:scale-[0.98]"
+          >
+            查看完整團隊檔案
+            <span className="transition-transform duration-300 group-hover:translate-x-1">→</span>
+          </Link>
+        </Reveal>
       </div>
     </section>
   )

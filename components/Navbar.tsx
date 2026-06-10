@@ -8,7 +8,7 @@ import { EASE } from '@/lib/motion'
 
 // 全站導航連結。品牌名保留英文，分頁標籤用簡潔字樣。
 const NAV_LINKS = [
-  { href: '/', label: '首頁' },
+  { href: '/', label: 'Home' },
   { href: '/team', label: 'Team' },
   { href: '/about', label: 'About' },
 ] as const

@@ -49,8 +49,44 @@ body {
   background-color: var(--color-bg-base);
   color: var(--color-text-primary);
   font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+  /* kern：字距修正；liga/calt：連字與上下文替代字 */
+  font-feature-settings: 'kern', 'liga', 'calt';
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
+  /* 中英混排的微呼吸 + 舒適正文行高（標題會以 utility 覆寫為緊湊行高） */
+  letter-spacing: 0.01em;
+  line-height: 1.75;
+}
+
+/* 標題：讓自動斷行更均衡，避免末行落單一字 */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  text-wrap: balance;
+}
+
+/* 段落：避免孤字（widow），斷行更自然 */
+p {
+  text-wrap: pretty;
+}
+
+/* 數據 / log / 計數器：等寬數字 + slashed zero，讓滾動數字不跳動 */
+.font-mono,
+.tabular-nums {
+  font-feature-settings: 'tnum', 'zero';
+}
+
+/* 可點擊元素一律顯示手型游標（Tailwind v4 preflight 不再預設） */
+button:not(:disabled),
+[role='button'],
+a[href],
+label[for],
+summary {
+  cursor: pointer;
 }
 
 /* 選取高光用品牌琥珀 */

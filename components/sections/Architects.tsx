@@ -14,7 +14,7 @@ export function Architects() {
           <h2 className="mt-4 font-display text-3xl font-semibold tracking-tight text-text-primary sm:text-4xl">
             蜂巢之上，是兩個人。
           </h2>
-          <p className="mt-4 max-w-2xl text-base leading-relaxed text-text-secondary">
+          <p className="mt-4 max-w-2xl text-base leading-[1.8] text-text-secondary">
             AI 員工負責執行，但方向與邊界由人類決定。在這個由 AI
             運轉的公司裡，這兩位是它的良知與意志。
           </p>
@@ -34,7 +34,7 @@ export function Architects() {
                 {person.name}
               </h3>
               <p className="mt-1 font-mono text-sm text-honey-400">{person.role}</p>
-              <p className="mt-4 text-sm leading-relaxed text-text-secondary">{person.bio}</p>
+              <p className="mt-4 text-sm leading-[1.8] text-text-secondary">{person.bio}</p>
             </RevealItem>
           ))}
         </RevealGroup>
