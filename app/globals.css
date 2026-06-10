@@ -1,26 +1,87 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/*
+  Hive Design Tokens → Tailwind v4
+  與 tokens/color.ts、tokens/font.ts 對齊。基調為暖黑 #0B0A09 + 蜂蜜琥珀。
+  字型 CSS variables 由 app/layout.tsx 的 next/font 注入。
+*/
+@theme {
+  /* 基底 */
+  --color-bg-base: #0b0a09;
+  --color-bg-raised: #13110e;
+  --color-bg-overlay: #1c1813;
+
+  /* 蜂蜜琥珀 */
+  --color-honey-300: #ffd89b;
+  --color-honey-400: #ffc56b;
+  --color-honey-500: #f5a623;
+  --color-honey-600: #d98818;
+
+  /* 蜂巢金屬光 */
+  --color-comb-line: rgba(245, 166, 35, 0.14);
+  --color-comb-glow: rgba(245, 166, 35, 0.35);
+
+  /* 文字 */
+  --color-text-primary: #f5f1ea;
+  --color-text-secondary: #a8a29a;
+  --color-text-muted: #6b655c;
+
+  /* 狀態色 */
+  --color-status-live: #4ade80;
+  --color-status-working: #f5a623;
+  --color-status-beta: #60a5fa;
+  --color-status-incubating: #6b655c;
+
+  /* 字型家族 */
+  --font-display: var(--font-fraunces);
+  --font-sans: var(--font-inter);
+  --font-mono: var(--font-jetbrains-mono);
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  scroll-behavior: smooth;
+  background-color: var(--color-bg-base);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--color-bg-base);
+  color: var(--color-text-primary);
+  font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* 選取高光用品牌琥珀 */
+::selection {
+  background-color: rgba(245, 166, 35, 0.28);
+  color: var(--color-text-primary);
+}
+
+/* 尊重使用者偏好：關閉動效 */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* 緩慢呼吸的 live 狀態指示燈 */
+@keyframes hive-breathe {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.45;
+    transform: scale(0.82);
+  }
+}
+
+.hive-breathe {
+  animation: hive-breathe 3s ease-in-out infinite;
 }
