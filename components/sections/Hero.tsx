@@ -1,7 +1,15 @@
 'use client'
 
-import { motion } from 'framer-motion'
+import {
+  motion,
+  useMotionValue,
+  useSpring,
+  useTransform,
+  useReducedMotion,
+  type Variants,
+} from 'framer-motion'
 import { fadeUp, staggerContainer, EASE } from '@/lib/motion'
+import { Magnetic } from '@/components/ui/Magnetic'
 import { EMPLOYEE_COUNT, LIVE_EMPLOYEES } from '@/lib/employees'
 
 // 產生 flat-top 六邊形的多邊形座標
@@ -14,7 +22,7 @@ function hexPoints(cx: number, cy: number, r: number) {
   return pts.join(' ')
 }
 
-// 靜態蜂巢佔位 — flat-top honeycomb backdrop（P1 將升級為互動 Canvas）
+// 靜態蜂巢佔位 — flat-top honeycomb backdrop
 function HiveBackdrop() {
   const R = 64
   const colStep = R * 1.5
@@ -70,15 +78,56 @@ function HiveBackdrop() {
   )
 }
 
+// 主標逐行揭幕 —— 每行在 overflow-hidden 的遮罩內由下方滑入。
+const lineContainer: Variants = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.12, delayChildren: 0.05 } },
+}
+const lineChild: Variants = {
+  hidden: { y: '115%' },
+  visible: { y: '0%', transition: { duration: 0.9, ease: EASE } },
+}
+
 export function Hero() {
+  const reduce = useReducedMotion()
+
+  // 滑鼠跟隨 parallax —— 游標相對畫面中心的 -0.5~0.5，乘上位移幅度。
+  const mx = useMotionValue(0)
+  const my = useMotionValue(0)
+  const sx = useSpring(mx, { stiffness: 60, damping: 18, mass: 1.1 })
+  const sy = useSpring(my, { stiffness: 60, damping: 18, mass: 1.1 })
+
+  // 兩層背景以不同幅度位移，製造景深。
+  const hexX = useTransform(sx, (v) => v * 18)
+  const hexY = useTransform(sy, (v) => v * 18)
+  const combX = useTransform(sx, (v) => v * 34)
+  const combY = useTransform(sy, (v) => v * 34)
+
+  const handleMove = (e: React.MouseEvent<HTMLElement>) => {
+    if (reduce) return
+    const { innerWidth, innerHeight } = window
+    mx.set(e.clientX / innerWidth - 0.5)
+    my.set(e.clientY / innerHeight - 0.5)
+  }
+
   return (
-    <section className="relative flex min-h-screen items-center overflow-hidden">
-      {/* 蜂格紋動態背景 — 最底層細密蜂巢紋理，緩慢呼吸（comb.line 色） */}
-      <div aria-hidden className="hex-field pointer-events-none absolute inset-0" />
-      {/* 蜂巢背景 */}
-      <div className="pointer-events-none absolute inset-0 opacity-70">
+    <section
+      onMouseMove={handleMove}
+      className="relative flex min-h-screen items-center overflow-hidden"
+    >
+      {/* 蜂格紋動態背景 — 最底層細密蜂巢紋理，緩慢呼吸 + 滑鼠 parallax */}
+      <motion.div
+        aria-hidden
+        className="hex-field pointer-events-none absolute inset-[-4%]"
+        style={reduce ? undefined : { x: combX, y: combY }}
+      />
+      {/* 蜂巢背景（位移幅度較小，形成景深） */}
+      <motion.div
+        className="pointer-events-none absolute inset-[-3%] opacity-70"
+        style={reduce ? undefined : { x: hexX, y: hexY }}
+      >
         <HiveBackdrop />
-      </div>
+      </motion.div>
       {/* 主視覺光暈 — 讓 Hero 更有存在感 */}
       <div className="pointer-events-none absolute left-1/2 top-[38%] h-[28rem] w-[28rem] -translate-x-1/2 -translate-y-1/2 rounded-full bg-honey-500/10 blur-[110px] sm:h-[42rem] sm:w-[42rem]" />
       {/* 底部漸層，讓文字浮起 */}
@@ -100,13 +149,21 @@ export function Hero() {
           </span>
         </motion.div>
 
+        {/* 主標 —— 逐行遮罩揭幕（reduced-motion 退化為整段 fade-up） */}
         <motion.h1
-          variants={fadeUp}
+          variants={reduce ? fadeUp : lineContainer}
           className="font-display text-[2.5rem] font-semibold leading-[1.08] tracking-tight text-text-primary sm:text-7xl sm:leading-[1.05]"
         >
-          {EMPLOYEE_COUNT} 位員工，
-          <br />
-          <span className="text-honey-500">從不下班。</span>
+          <span className="block overflow-hidden pb-[0.05em]">
+            <motion.span variants={reduce ? undefined : lineChild} className="block">
+              {EMPLOYEE_COUNT} 位員工，
+            </motion.span>
+          </span>
+          <span className="block overflow-hidden pb-[0.05em]">
+            <motion.span variants={reduce ? undefined : lineChild} className="block text-honey-500">
+              從不下班。
+            </motion.span>
+          </span>
         </motion.h1>
 
         <motion.div variants={fadeUp} className="mt-6 max-w-2xl sm:mt-7">
@@ -120,19 +177,25 @@ export function Hero() {
         </motion.div>
 
         <motion.div variants={fadeUp} className="mt-10 flex flex-wrap items-center gap-4">
-          <a
-            href="#roster"
-            className="group inline-flex items-center gap-2 rounded-full bg-honey-500 px-6 py-3 text-sm font-semibold text-bg-base shadow-lg shadow-honey-500/25 transition-all duration-300 hover:scale-[1.04] hover:bg-honey-400 hover:shadow-xl hover:shadow-honey-500/40 active:scale-[0.98]"
-          >
-            進入 Hive
-            <span className="transition-transform duration-300 group-hover:translate-x-1">→</span>
-          </a>
-          <a
-            href="#live"
-            className="inline-flex items-center gap-2 rounded-full border border-comb-line bg-bg-raised/40 px-6 py-3 text-sm font-medium text-text-primary backdrop-blur-sm transition-all duration-300 hover:scale-[1.03] hover:border-honey-500/40 hover:bg-bg-overlay active:scale-[0.98]"
-          >
-            看他們正在做什麼
-          </a>
+          <Magnetic strength={0.4}>
+            <a
+              href="#roster"
+              className="cta-shimmer group inline-flex items-center gap-2 rounded-full bg-honey-500 px-6 py-3 text-sm font-semibold text-bg-base shadow-lg shadow-honey-500/25 transition-all duration-300 hover:bg-honey-400 hover:shadow-xl hover:shadow-honey-500/40 active:scale-[0.98]"
+            >
+              <span className="relative z-[2]">進入 Hive</span>
+              <span className="relative z-[2] transition-transform duration-300 group-hover:translate-x-1">
+                →
+              </span>
+            </a>
+          </Magnetic>
+          <Magnetic strength={0.3}>
+            <a
+              href="#live"
+              className="inline-flex items-center gap-2 rounded-full border border-comb-line bg-bg-raised/40 px-6 py-3 text-sm font-medium text-text-primary backdrop-blur-sm transition-all duration-300 hover:border-honey-500/40 hover:bg-bg-overlay active:scale-[0.98]"
+            >
+              看他們正在做什麼
+            </a>
+          </Magnetic>
         </motion.div>
       </motion.div>
     </section>

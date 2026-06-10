@@ -10,7 +10,7 @@ const FOOTER_NAV = [
   { href: '/about', label: '關於我們' },
   { href: '/#live', label: '即時動態' },
   { href: '/#business', label: '業務線' },
-  { href: 'mailto:tech@vertexdistributor.com', label: '聯絡蜂巢' },
+  { href: '#', label: '聯絡蜂巢' },
 ] as const
 
 // 收束成 logo 的小蜂巢圖示
@@ -42,7 +42,7 @@ export function SiteFooter() {
       <div className="mx-auto flex w-full max-w-5xl flex-col items-center justify-between gap-6 px-6 py-10 sm:flex-row">
         <Link
           href="/"
-          className="flex items-center gap-3 transition-opacity duration-300 hover:opacity-90"
+          className="logo-glow group flex items-center gap-3 rounded-lg transition-opacity duration-300 hover:opacity-95"
         >
           <HiveMark />
           <div className="text-left">

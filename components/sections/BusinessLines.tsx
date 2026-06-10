@@ -1,7 +1,9 @@
 'use client'
 
-import { Reveal, RevealGroup, RevealItem } from '@/components/ui/Reveal'
+import { useEffect, useRef } from 'react'
+import { SectionHeading } from '@/components/ui/SectionHeading'
 import { EMPLOYEES, STAGE_META } from '@/lib/employees'
+import { gsap, registerScrollTrigger, prefersReducedMotion } from '@/lib/gsap'
 
 const LINES = [
   {
@@ -21,40 +23,65 @@ const LINES = [
 ]
 
 export function BusinessLines() {
+  const gridRef = useRef<HTMLUListElement>(null)
+
+  // GSAP ScrollTrigger：雙欄從兩側滑入（左欄 ←、右欄 →）。
+  // reduced-motion 下跳過，維持自然可見狀態。
+  useEffect(() => {
+    if (prefersReducedMotion() || !gridRef.current) return
+    registerScrollTrigger()
+    const ctx = gsap.context(() => {
+      const cards = gsap.utils.toArray<HTMLElement>('.line-card')
+      cards.forEach((card, i) => {
+        gsap.from(card, {
+          opacity: 0,
+          x: i === 0 ? -72 : 72,
+          duration: 0.95,
+          ease: 'power3.out',
+          scrollTrigger: {
+            trigger: gridRef.current,
+            start: 'top 80%',
+            once: true,
+          },
+        })
+      })
+    }, gridRef)
+    return () => ctx.revert()
+  }, [])
+
   return (
     <section id="business" className="relative border-t border-comb-line py-28">
       <div className="mx-auto w-full max-w-6xl px-6">
-        <Reveal>
-          <p className="font-mono text-xs uppercase tracking-[0.2em] text-honey-500">
-            Two Business Lines
-          </p>
-          <h2 className="mt-4 font-display text-3xl font-semibold tracking-tight text-text-primary sm:text-4xl">
-            同一座蜂巢，兩條業務線。
-          </h2>
-          <p className="mt-4 max-w-2xl text-base leading-[1.8] text-text-secondary">
-            分銷與軟體看似無關，卻共用同一群 AI
-            員工與同一套營運系統。蜂巢的能力，可以同時飛向不同的花田。
-          </p>
-        </Reveal>
+        <SectionHeading
+          eyebrow="Two Business Lines"
+          title="同一座蜂巢，兩條業務線。"
+          description={
+            <>
+              分銷與軟體看似無關，卻共用同一群 AI
+              員工與同一套營運系統。蜂巢的能力，可以同時飛向不同的花田。
+            </>
+          }
+        />
 
-        <RevealGroup as="ul" className="mt-14 grid gap-6 lg:grid-cols-2">
+        <ul ref={gridRef} className="mt-14 grid gap-6 lg:grid-cols-2">
           {LINES.map((line) => {
             const crew = EMPLOYEES.filter((e) => e.line === line.key)
             return (
-              <RevealItem
-                as="li"
+              <li
                 key={line.key}
-                className="flex flex-col rounded-2xl border border-comb-line bg-bg-raised p-8 transition-all duration-300 hover:-translate-y-1 hover:border-honey-500/40 hover:shadow-xl hover:shadow-honey-500/10"
+                className="line-card glow-border relative flex flex-col rounded-2xl border border-comb-line bg-bg-raised p-8 transition-all duration-300 hover:-translate-y-1 hover:border-honey-500/40 hover:shadow-xl hover:shadow-honey-500/10"
               >
-                <span className="font-mono text-xs uppercase tracking-[0.2em] text-honey-500">
+                <span className="relative z-[1] font-mono text-xs uppercase tracking-[0.2em] text-honey-500">
                   {line.tag}
                 </span>
-                <h3 className="mt-4 font-display text-2xl font-semibold text-text-primary">
+                <h3 className="relative z-[1] mt-4 font-display text-2xl font-semibold text-text-primary">
                   {line.title}
                 </h3>
-                <p className="mt-4 text-sm leading-[1.8] text-text-secondary">{line.body}</p>
+                <p className="relative z-[1] mt-4 text-sm leading-[1.8] text-text-secondary">
+                  {line.body}
+                </p>
 
-                <ul className="mt-6 space-y-2.5">
+                <ul className="relative z-[1] mt-6 space-y-2.5">
                   {line.points.map((p) => (
                     <li key={p} className="flex items-start gap-2.5 text-sm text-text-secondary">
                       <span className="mt-1.5 inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-honey-500" />
@@ -64,7 +91,7 @@ export function BusinessLines() {
                 </ul>
 
                 {/* 負責的員工 */}
-                <div className="mt-7 flex flex-wrap items-center gap-2 border-t border-comb-line pt-5">
+                <div className="relative z-[1] mt-7 flex flex-wrap items-center gap-2 border-t border-comb-line pt-5">
                   <span className="font-mono text-[11px] text-text-muted">負責員工</span>
                   {crew.map((e) => (
                     <span
@@ -80,10 +107,10 @@ export function BusinessLines() {
                     </span>
                   ))}
                 </div>
-              </RevealItem>
+              </li>
             )
           })}
-        </RevealGroup>
+        </ul>
       </div>
     </section>
   )

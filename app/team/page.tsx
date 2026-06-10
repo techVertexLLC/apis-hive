@@ -1,6 +1,11 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { fadeUp } from '@/lib/motion'
 import { Reveal, RevealGroup, RevealItem } from '@/components/ui/Reveal'
+import { SectionHeading } from '@/components/ui/SectionHeading'
+import { TiltCard } from '@/components/ui/TiltCard'
+import { Magnetic } from '@/components/ui/Magnetic'
+import { BlinkCursor } from '@/components/ui/BlinkCursor'
 import { EMPLOYEES, STAGE_META, type Stage, type Employee } from '@/lib/employees'
 
 export const metadata: Metadata = {

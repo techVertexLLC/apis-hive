@@ -238,7 +238,7 @@ export default function AboutPage() {
 
           <Reveal className="mt-10 flex flex-wrap items-center justify-center gap-4" delay={0.1}>
             <a
-              href="mailto:tech@vertexdistributor.com"
+              href="#"
               className="group inline-flex items-center gap-2 rounded-full bg-honey-500 px-7 py-3 text-sm font-semibold text-bg-base shadow-lg shadow-honey-500/20 transition-all duration-300 hover:scale-[1.03] hover:bg-honey-400 hover:shadow-honey-500/40 active:scale-[0.98]"
             >
               一起建造蜂箱

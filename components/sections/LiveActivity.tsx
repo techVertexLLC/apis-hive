@@ -4,11 +4,15 @@ import { useEffect, useRef, useState } from 'react'
 import {
   AnimatePresence,
   motion,
+  useAnimate,
   useMotionValueEvent,
+  useReducedMotion,
   useSpring,
 } from 'framer-motion'
 import { EASE } from '@/lib/motion'
 import { Reveal } from '@/components/ui/Reveal'
+import { SectionHeading } from '@/components/ui/SectionHeading'
+import { BlinkCursor } from '@/components/ui/BlinkCursor'
 import { EMPLOYEES, type Stage } from '@/lib/employees'
 
 // 只取已上線（live）與測試中（beta）的員工 —— 他們才會真的在跑任務。
@@ -106,17 +110,34 @@ const pick = <T,>(arr: T[]): T => arr[Math.floor(Math.random() * arr.length)]
 // HH:MM:SS
 const fmtTime = (d: Date): string => d.toTimeString().slice(0, 8)
 
-// 「今日已處理 X 筆」計數器 —— 用 spring 做 count-up，數字平滑爬升。
+// 「今日已處理 X 筆」計數器 —— spring count-up，每次 +1 時數字帶彈跳（scale pop）。
 function TaskCounter({ value }: { value: number }) {
-  const spring = useSpring(0, { stiffness: 60, damping: 18, mass: 1 })
+  const reduce = useReducedMotion()
+  const spring = useSpring(0, { stiffness: 90, damping: 14, mass: 0.8 })
   const [display, setDisplay] = useState(0)
+  const [scope, animate] = useAnimate()
+  const firstRun = useRef(true)
 
   useMotionValueEvent(spring, 'change', (v) => setDisplay(Math.round(v)))
   useEffect(() => {
     spring.set(value)
   }, [value, spring])
 
-  return <span className="tabular-nums text-honey-400">{display.toLocaleString('en-US')}</span>
+  // 數值變化時的彈跳；初次載入（大幅 count-up）不彈，避免突兀。
+  useEffect(() => {
+    if (firstRun.current) {
+      firstRun.current = false
+      return
+    }
+    if (reduce || !scope.current) return
+    animate(scope.current, { scale: [1.28, 1] }, { duration: 0.45, ease: EASE })
+  }, [value, reduce, animate, scope])
+
+  return (
+    <span ref={scope} className="inline-block origin-center tabular-nums text-honey-400">
+      {display.toLocaleString('en-US')}
+    </span>
+  )
 }
 
 export function LiveActivity() {
@@ -197,18 +218,16 @@ export function LiveActivity() {
   return (
     <section id="live" className="relative border-t border-comb-line py-28">
       <div className="mx-auto w-full max-w-5xl px-6">
-        <Reveal>
-          <p className="font-mono text-xs uppercase tracking-[0.2em] text-honey-500">
-            Live Activity
-          </p>
-          <h2 className="mt-4 font-display text-3xl font-semibold tracking-tight text-text-primary sm:text-4xl">
-            不是宣稱，是證據。
-          </h2>
-          <p className="mt-4 max-w-2xl text-base leading-[1.8] text-text-secondary">
-            這是蜂巢的即時營運流（real-time AI operations）。每一行都是某個自主
-            AI 代理（autonomous agent）剛剛完成的任務 — 即時、未經修飾、持續滾動。
-          </p>
-        </Reveal>
+        <SectionHeading
+          eyebrow="Live Activity"
+          title="不是宣稱，是證據。"
+          description={
+            <>
+              這是蜂巢的即時營運流（real-time AI operations）。每一行都是某個自主
+              AI 代理（autonomous agent）剛剛完成的任務 — 即時、未經修飾、持續滾動。
+            </>
+          }
+        />
 
         {/* 終端機風格的即時活動流 */}
         <Reveal
@@ -220,7 +239,10 @@ export function LiveActivity() {
             <span>hive://activity-stream</span>
             <span className="flex items-center gap-2">
               <span className="hive-breathe inline-block h-1.5 w-1.5 rounded-full bg-status-live" />
-              串流中
+              <span className="inline-flex items-center">
+                串流中
+                <BlinkCursor className="text-status-live" />
+              </span>
             </span>
           </div>
 
@@ -235,22 +257,33 @@ export function LiveActivity() {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, transition: { duration: 0.4, ease: EASE } }}
                   transition={{ duration: 0.5, ease: EASE }}
-                  className="flex items-start gap-3 border-b border-comb-line/50 px-4 py-3.5 font-mono text-[13px] last:border-b-0 sm:gap-4 sm:px-5 sm:text-sm"
+                  className="group relative overflow-hidden border-b border-comb-line/50 px-4 py-3.5 font-mono text-[13px] transition-colors duration-300 last:border-b-0 hover:bg-honey-500/[0.045] sm:px-5 sm:text-sm"
                 >
-                  <span className="shrink-0 pt-px tabular-nums text-text-muted">
-                    {entry.time}
-                  </span>
-                  <span
-                    className={`mt-1.5 inline-block h-1.5 w-1.5 shrink-0 rounded-full ${DOT[entry.stage]} ${
-                      i === 0 ? 'hive-breathe' : ''
-                    }`}
+                  {/* 左側色條：新訊息進場時由 0 寬度展開（依員工狀態著色） */}
+                  <motion.span
+                    aria-hidden
+                    className={`absolute left-0 top-0 h-full w-[3px] origin-left ${DOT[entry.stage]}`}
+                    initial={{ scaleX: 0, opacity: 0 }}
+                    animate={{ scaleX: 1, opacity: 1 }}
+                    transition={{ duration: 0.5, ease: EASE, delay: 0.05 }}
                   />
-                  <span className="flex-1 leading-[1.8] text-text-secondary">
-                    <span className="font-semibold text-honey-400">
-                      [{entry.name}·{entry.abbr}]
-                    </span>{' '}
-                    {entry.message}
-                  </span>
+                  {/* 內容：hover 時整列微微右移 */}
+                  <div className="flex items-start gap-3 transition-transform duration-300 group-hover:translate-x-1 sm:gap-4">
+                    <span className="shrink-0 pt-px tabular-nums text-text-muted">
+                      {entry.time}
+                    </span>
+                    <span
+                      className={`mt-1.5 inline-block h-1.5 w-1.5 shrink-0 rounded-full ${DOT[entry.stage]} ${
+                        i === 0 ? 'hive-breathe' : ''
+                      }`}
+                    />
+                    <span className="flex-1 leading-[1.8] text-text-secondary">
+                      <span className="font-semibold text-honey-400">
+                        [{entry.name}·{entry.abbr}]
+                      </span>{' '}
+                      {entry.message}
+                    </span>
+                  </div>
                 </motion.div>
               ))}
             </AnimatePresence>

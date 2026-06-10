@@ -4,6 +4,7 @@ import './globals.css'
 import { buildMetadata, organizationJsonLd } from '@/lib/seo'
 import { Navbar } from '@/components/Navbar'
 import { SiteFooter } from '@/components/SiteFooter'
+import { ScrollToTop } from '@/components/ui/ScrollToTop'
 
 // Fraunces — 標題（可變字重 + optical size，蜂蜜般圓潤）
 const fraunces = Fraunces({
@@ -47,6 +48,7 @@ export default function RootLayout({
         <Navbar />
         {children}
         <SiteFooter />
+        <ScrollToTop />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{

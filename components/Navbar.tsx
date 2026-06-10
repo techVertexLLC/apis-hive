@@ -3,8 +3,8 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { AnimatePresence, motion } from 'framer-motion'
-import { EASE } from '@/lib/motion'
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
+import { EASE, SPRING_SOFT } from '@/lib/motion'
 
 // 全站導航連結。品牌名保留英文，分頁標籤用簡潔字樣。
 const NAV_LINKS = [
@@ -15,6 +15,7 @@ const NAV_LINKS = [
 
 export function Navbar() {
   const pathname = usePathname()
+  const reduce = useReducedMotion()
   const [open, setOpen] = useState(false)
 
   // 當前頁面判定：精準比對 pathname（首頁僅在根路徑高亮）
@@ -38,10 +39,9 @@ export function Navbar() {
           {NAV_LINKS.map((link) => {
             const active = isActive(link.href)
             return (
-              <li key={link.href}>
+              <li key={link.href} className="relative">
                 <Link
                   href={link.href}
-                  data-active={active}
                   className={`nav-underline font-mono text-sm transition-colors duration-300 ${
                     active
                       ? 'text-honey-500'
@@ -50,6 +50,15 @@ export function Navbar() {
                 >
                   {link.label}
                 </Link>
+                {/* 滑動式 active 指示線 —— 換頁時用 layoutId 在連結間平滑滑移 */}
+                {active && (
+                  <motion.span
+                    layoutId="nav-active-indicator"
+                    aria-hidden
+                    className="absolute -bottom-[0.35rem] left-0 right-0 h-px bg-honey-500"
+                    transition={reduce ? { duration: 0 } : SPRING_SOFT}
+                  />
+                )}
               </li>
             )
           })}
