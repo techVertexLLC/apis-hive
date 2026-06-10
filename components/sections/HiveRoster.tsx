@@ -53,7 +53,12 @@ export function HiveRoster() {
                     className="absolute inset-[1.5px] bg-bg-base transition-colors duration-300 group-hover:bg-bg-overlay"
                     style={{ clipPath: HEX_CLIP }}
                   />
-                  <span className="relative text-3xl">{emp.emoji}</span>
+                  <span
+                    className="relative inline-flex h-9 w-9 items-center justify-center rounded-full font-mono text-[11px] font-semibold tracking-wider"
+                    style={{ color: meta.color, backgroundColor: `${meta.color}1f` }}
+                  >
+                    {emp.abbr}
+                  </span>
                   <span className="relative font-display text-base font-semibold text-text-primary">
                     {emp.name}
                   </span>
@@ -72,7 +77,12 @@ export function HiveRoster() {
                 {/* hover 詳細卡 */}
                 <div className="pointer-events-none absolute left-1/2 top-full z-20 w-64 -translate-x-1/2 translate-y-2 rounded-xl border border-comb-line bg-bg-overlay/95 p-4 text-left opacity-0 shadow-2xl shadow-black/60 backdrop-blur-sm transition-all duration-200 group-hover:translate-y-1 group-hover:opacity-100">
                   <div className="flex items-center gap-2">
-                    <span className="text-lg">{emp.emoji}</span>
+                    <span
+                      className="inline-flex h-6 items-center rounded-md px-1.5 font-mono text-[10px] font-semibold tracking-wider"
+                      style={{ color: meta.color, backgroundColor: `${meta.color}1f` }}
+                    >
+                      {emp.abbr}
+                    </span>
                     <span className="font-display text-sm font-semibold text-text-primary">
                       {emp.name}
                     </span>

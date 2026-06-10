@@ -14,8 +14,8 @@ export interface Employee {
   id: string
   /** 名字（品牌人格，保留英文） */
   name: string
-  /** 代表 emoji */
-  emoji: string
+  /** 角色縮寫（代替 emoji 的識別標記） */
+  abbr: string
   /** 角色職稱 */
   role: string
   /** 所屬團隊 */
@@ -52,7 +52,7 @@ export const EMPLOYEES: Employee[] = [
   {
     id: 'meli',
     name: 'Meli',
-    emoji: '🐝',
+    abbr: 'COO',
     role: '營運長 COO',
     department: '蜂后辦公室',
     stage: 'live',
@@ -65,7 +65,7 @@ export const EMPLOYEES: Employee[] = [
   {
     id: 'cora',
     name: 'Cora',
-    emoji: '📋',
+    abbr: 'PM',
     role: '產品經理 PM',
     department: '產品團隊',
     stage: 'live',
@@ -78,7 +78,7 @@ export const EMPLOYEES: Employee[] = [
   {
     id: 'steve',
     name: 'Steve',
-    emoji: '💻',
+    abbr: 'FE',
     role: '前端工程師 Frontend',
     department: '產品團隊',
     stage: 'live',
@@ -91,7 +91,7 @@ export const EMPLOYEES: Employee[] = [
   {
     id: 'apple',
     name: 'Apple',
-    emoji: '🍎',
+    abbr: 'SRE',
     role: '網站可靠性工程師 SRE',
     department: '基礎設施',
     stage: 'live',
@@ -104,7 +104,7 @@ export const EMPLOYEES: Employee[] = [
   {
     id: 'iris',
     name: 'Iris',
-    emoji: '🌸',
+    abbr: 'BD',
     role: '業務開發 Sales / BD',
     department: '分銷業務',
     stage: 'beta',
@@ -117,7 +117,7 @@ export const EMPLOYEES: Employee[] = [
   {
     id: 'penny',
     name: 'Penny',
-    emoji: '🪙',
+    abbr: 'CS',
     role: '客戶成功 CS',
     department: '分銷業務',
     stage: 'beta',
@@ -130,7 +130,7 @@ export const EMPLOYEES: Employee[] = [
   {
     id: 'content',
     name: 'Quill',
-    emoji: '✍️',
+    abbr: 'CW',
     role: '內容 / 提示工程 Content & Prompt',
     department: '內容團隊',
     stage: 'incubating',
@@ -143,7 +143,7 @@ export const EMPLOYEES: Employee[] = [
   {
     id: 'seo',
     name: 'Sage',
-    emoji: '🔍',
+    abbr: 'SEO',
     role: '搜尋引擎優化 SEO',
     department: '內容團隊',
     stage: 'incubating',
@@ -156,7 +156,7 @@ export const EMPLOYEES: Employee[] = [
   {
     id: 'qa',
     name: 'Quinn',
-    emoji: '🧪',
+    abbr: 'QA',
     role: '品質保證 QA',
     department: '產品團隊',
     stage: 'incubating',
@@ -169,7 +169,7 @@ export const EMPLOYEES: Employee[] = [
   {
     id: 'finance',
     name: 'Fern',
-    emoji: '📊',
+    abbr: 'FIN',
     role: '財務分析 Finance Analyst',
     department: '營運團隊',
     stage: 'incubating',
@@ -182,7 +182,7 @@ export const EMPLOYEES: Employee[] = [
   {
     id: 'growth',
     name: 'Gale',
-    emoji: '📈',
+    abbr: 'GM',
     role: '成長行銷 Growth Marketing',
     department: '行銷團隊',
     stage: 'incubating',
@@ -195,7 +195,7 @@ export const EMPLOYEES: Employee[] = [
   {
     id: 'supply',
     name: 'Cargo',
-    emoji: '📦',
+    abbr: 'SCM',
     role: '供應鏈 Supply Chain',
     department: '分銷業務',
     stage: 'incubating',
@@ -208,7 +208,7 @@ export const EMPLOYEES: Employee[] = [
   {
     id: 'design',
     name: 'Vera',
-    emoji: '🎨',
+    abbr: 'CD',
     role: '創意設計 Creative Design',
     department: '產品團隊',
     stage: 'incubating',

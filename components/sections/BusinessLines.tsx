@@ -1,7 +1,7 @@
 'use client'
 
 import { Reveal, RevealGroup, RevealItem } from '@/components/ui/Reveal'
-import { EMPLOYEES } from '@/lib/employees'
+import { EMPLOYEES, STAGE_META } from '@/lib/employees'
 
 const LINES = [
   {
@@ -72,7 +72,10 @@ export function BusinessLines() {
                       title={`${e.name} · ${e.role}`}
                       className="inline-flex items-center gap-1.5 rounded-full border border-comb-line bg-bg-base px-2.5 py-1 text-xs text-text-secondary"
                     >
-                      <span>{e.emoji}</span>
+                      <span
+                        className="inline-block h-1.5 w-1.5 rounded-full"
+                        style={{ backgroundColor: STAGE_META[e.stage].color }}
+                      />
                       {e.name}
                     </span>
                   ))}

@@ -9,7 +9,6 @@ type Channel = 'distribution' | 'software' | 'system'
 interface ActivityEntry {
   time: string
   actor: string
-  emoji: string
   channel: Channel
   message: string
 }
@@ -19,56 +18,48 @@ const FEED: ActivityEntry[] = [
   {
     time: '03:14:07',
     actor: 'Apple',
-    emoji: '🍎',
     channel: 'system',
     message: '部署 hive-web@a3f9c1 至 production，健康檢查通過 (218ms)',
   },
   {
     time: '03:11:52',
     actor: 'Iris',
-    emoji: '🌸',
     channel: 'distribution',
     message: '回覆供應商報價詢問，附上 3 個替代型號比價表',
   },
   {
     time: '03:09:31',
     actor: 'Steve',
-    emoji: '💻',
     channel: 'software',
     message: '完成 Hero section 動效調校，fade-up stagger 70ms',
   },
   {
     time: '03:06:18',
     actor: 'Penny',
-    emoji: '🪙',
     channel: 'distribution',
     message: '處理訂單 #VX-20488 退換貨，已通知物流重新出貨',
   },
   {
     time: '03:02:44',
     actor: 'Cora',
-    emoji: '📋',
     channel: 'software',
     message: '更新 Roster 區塊規格，新增「上線階段」欄位驗收標準',
   },
   {
     time: '02:58:09',
     actor: 'Meli',
-    emoji: '🐝',
     channel: 'system',
     message: '排定今日任務佇列：14 項 software · 9 項 distribution',
   },
   {
     time: '02:55:23',
     actor: 'Apple',
-    emoji: '🍎',
     channel: 'system',
     message: '偵測到 API 延遲 p95 上升至 340ms，已自動擴容 1 個節點',
   },
   {
     time: '02:51:47',
     actor: 'Iris',
-    emoji: '🌸',
     channel: 'distribution',
     message: '新增潛在客戶至 pipeline，標記為高意向待跟進',
   },
@@ -91,6 +82,12 @@ const CHANNEL_COLOR: Record<Channel, string> = {
   distribution: 'text-honey-400',
   software: 'text-status-beta',
   system: 'text-status-live',
+}
+
+const CHANNEL_DOT: Record<Channel, string> = {
+  distribution: 'bg-honey-400',
+  software: 'bg-status-beta',
+  system: 'bg-status-live',
 }
 
 export function LiveActivity() {
@@ -134,7 +131,9 @@ export function LiveActivity() {
               className="flex items-start gap-4 border-b border-comb-line/60 px-5 py-4 font-mono text-sm last:border-b-0"
             >
               <span className="shrink-0 text-text-muted tabular-nums">{entry.time}</span>
-              <span className="shrink-0">{entry.emoji}</span>
+              <span
+                className={`mt-1.5 inline-block h-1.5 w-1.5 shrink-0 rounded-full ${CHANNEL_DOT[entry.channel]}`}
+              />
               <span className="flex-1 leading-relaxed text-text-secondary">
                 <span className="font-semibold text-text-primary">{entry.actor}</span>
                 <span className={`mx-2 ${CHANNEL_COLOR[entry.channel]}`}>

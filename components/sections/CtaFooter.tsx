@@ -31,7 +31,7 @@ function HiveMark() {
         className="absolute inset-[3px] flex items-center justify-center bg-bg-base"
         style={{ clipPath: hex }}
       >
-        <span className="text-lg">🐝</span>
+        <span className="font-display text-lg font-semibold text-honey-500">A</span>
       </div>
     </motion.div>
   )

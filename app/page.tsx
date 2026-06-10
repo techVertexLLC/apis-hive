@@ -1,4 +1,3 @@
-import { SmoothScrollProvider } from '@/components/providers/SmoothScrollProvider'
 import { Hero } from '@/components/sections/Hero'
 import { LiveActivity } from '@/components/sections/LiveActivity'
 import { HiveRoster } from '@/components/sections/HiveRoster'
@@ -9,16 +8,14 @@ import { CtaFooter } from '@/components/sections/CtaFooter'
 
 export default function Home() {
   return (
-    <SmoothScrollProvider>
-      <main className="relative">
-        <Hero />
-        <LiveActivity />
-        <HiveRoster />
-        <HowItWorks />
-        <BusinessLines />
-        <Architects />
-        <CtaFooter />
-      </main>
-    </SmoothScrollProvider>
+    <main className="relative">
+      <Hero />
+      <LiveActivity />
+      <HiveRoster />
+      <HowItWorks />
+      <BusinessLines />
+      <Architects />
+      <CtaFooter />
+    </main>
   )
 }
