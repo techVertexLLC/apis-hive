@@ -135,7 +135,7 @@ export default function AboutPage() {
               <RevealItem
                 as="li"
                 key={row.en}
-                className="grid grid-cols-1 gap-2 rounded-2xl border border-comb-line bg-bg-raised p-6 transition-colors duration-300 hover:border-honey-500/30 hover:bg-bg-overlay sm:grid-cols-[220px_1fr] sm:gap-6"
+                className="grid grid-cols-1 gap-2 rounded-2xl border border-comb-line bg-bg-raised p-6 transition-all duration-300 hover:border-honey-500/40 hover:bg-bg-overlay hover:shadow-lg hover:shadow-honey-500/10 sm:grid-cols-[220px_1fr] sm:gap-6"
               >
                 <div>
                   <p className="font-display text-xl font-semibold leading-tight text-text-primary">
@@ -166,7 +166,7 @@ export default function AboutPage() {
               <RevealItem
                 as="li"
                 key={p.title}
-                className="rounded-2xl border border-comb-line border-t-2 border-t-honey-500 bg-bg-raised p-6"
+                className="rounded-2xl border border-comb-line border-t-2 border-t-honey-500 bg-bg-raised p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-honey-500/10"
               >
                 <h4 className="font-display text-lg font-semibold text-text-primary">
                   {p.title}
@@ -238,10 +238,10 @@ export default function AboutPage() {
           <Reveal className="mt-10 flex flex-wrap items-center justify-center gap-4" delay={0.1}>
             <a
               href="mailto:tech@vertexdistributor.com"
-              className="inline-flex items-center gap-2 rounded-full bg-honey-500 px-7 py-3 text-sm font-semibold text-bg-base transition-colors hover:bg-honey-400"
+              className="group inline-flex items-center gap-2 rounded-full bg-honey-500 px-7 py-3 text-sm font-semibold text-bg-base shadow-lg shadow-honey-500/20 transition-all duration-300 hover:scale-[1.03] hover:bg-honey-400 hover:shadow-honey-500/40 active:scale-[0.98]"
             >
               一起建造蜂箱
-              <span>→</span>
+              <span className="transition-transform duration-300 group-hover:translate-x-0.5">→</span>
             </a>
           </Reveal>
         </div>

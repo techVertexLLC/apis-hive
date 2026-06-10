@@ -44,7 +44,7 @@ export function BusinessLines() {
               <RevealItem
                 as="li"
                 key={line.key}
-                className="flex flex-col rounded-2xl border border-comb-line bg-bg-raised p-8 transition-colors duration-300 hover:border-honey-500/30"
+                className="flex flex-col rounded-2xl border border-comb-line bg-bg-raised p-8 transition-all duration-300 hover:-translate-y-1 hover:border-honey-500/40 hover:shadow-xl hover:shadow-honey-500/10"
               >
                 <span className="font-mono text-xs uppercase tracking-[0.2em] text-honey-500">
                   {line.tag}

@@ -44,7 +44,7 @@ export function HowItWorks() {
             <RevealItem
               as="li"
               key={b.index}
-              className="group relative flex flex-col rounded-2xl border border-comb-line bg-bg-raised p-7 transition-colors duration-300 hover:border-honey-500/30 hover:bg-bg-overlay"
+              className="group relative flex flex-col rounded-2xl border border-comb-line bg-bg-raised p-7 transition-all duration-300 hover:-translate-y-1 hover:border-honey-500/40 hover:bg-bg-overlay hover:shadow-xl hover:shadow-honey-500/10"
             >
               <div className="flex items-center justify-between">
                 <span className="font-display text-3xl font-semibold text-honey-500/40">

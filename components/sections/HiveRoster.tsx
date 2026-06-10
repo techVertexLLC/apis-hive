@@ -74,8 +74,8 @@ export function HiveRoster() {
                   </span>
                 </div>
 
-                {/* hover 詳細卡 */}
-                <div className="pointer-events-none absolute left-1/2 top-full z-20 w-64 -translate-x-1/2 translate-y-2 rounded-xl border border-comb-line bg-bg-overlay/95 p-4 text-left opacity-0 shadow-2xl shadow-black/60 backdrop-blur-sm transition-all duration-200 group-hover:translate-y-1 group-hover:opacity-100">
+                {/* hover 詳細卡（桌面才顯示；觸控裝置無 hover，改由 /team 提供完整資訊） */}
+                <div className="pointer-events-none absolute left-1/2 top-full z-20 hidden w-64 -translate-x-1/2 translate-y-2 rounded-xl border border-comb-line bg-bg-overlay/95 p-4 text-left opacity-0 shadow-2xl shadow-black/60 backdrop-blur-sm transition-all duration-200 group-hover:translate-y-1 group-hover:opacity-100 sm:block">
                   <div className="flex items-center gap-2">
                     <span
                       className="inline-flex h-6 items-center rounded-md px-1.5 font-mono text-[10px] font-semibold tracking-wider"

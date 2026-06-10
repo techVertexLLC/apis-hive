@@ -25,9 +25,9 @@ export function Architects() {
             <RevealItem
               as="li"
               key={person.id}
-              className="flex flex-col rounded-2xl border border-comb-line bg-bg-raised p-8"
+              className="group flex flex-col rounded-2xl border border-comb-line bg-bg-raised p-8 transition-all duration-300 hover:-translate-y-1 hover:border-honey-500/40 hover:shadow-xl hover:shadow-honey-500/10"
             >
-              <div className="flex h-14 w-14 items-center justify-center rounded-full border border-honey-500/40 bg-honey-500/10 font-display text-xl font-semibold text-honey-400">
+              <div className="flex h-14 w-14 items-center justify-center rounded-full border border-honey-500/40 bg-honey-500/10 font-display text-xl font-semibold text-honey-400 transition-all duration-300 group-hover:scale-105 group-hover:border-honey-500/70 group-hover:bg-honey-500/20">
                 {person.id === 'ceo' ? 'C' : 'T'}
               </div>
               <h3 className="mt-5 font-display text-xl font-semibold text-text-primary">

@@ -29,7 +29,7 @@ function EmployeeCard({ emp }: { emp: Employee }) {
   return (
     <RevealItem
       as="li"
-      className="flex flex-col rounded-2xl border border-comb-line bg-bg-raised p-6 transition-colors duration-300 hover:border-honey-500/30 hover:bg-bg-overlay"
+      className="flex flex-col rounded-2xl border border-comb-line bg-bg-raised p-6 transition-all duration-300 hover:-translate-y-1 hover:border-honey-500/40 hover:bg-bg-overlay hover:shadow-xl hover:shadow-honey-500/10"
     >
       {/* 標頭：縮寫徽章 + 名字 / 角色 + 狀態標籤 */}
       <div className="flex items-start gap-3">

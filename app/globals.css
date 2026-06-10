@@ -21,10 +21,10 @@
   --color-comb-line: rgba(245, 166, 35, 0.14);
   --color-comb-glow: rgba(245, 166, 35, 0.35);
 
-  /* 文字 */
+  /* 文字 — muted 提亮至 #8a847a 以通過深色背景上的 WCAG AA（小字 ≥4.5:1） */
   --color-text-primary: #f5f1ea;
-  --color-text-secondary: #a8a29a;
-  --color-text-muted: #6b655c;
+  --color-text-secondary: #b3ada4;
+  --color-text-muted: #8a847a;
 
   /* 狀態色 */
   --color-status-live: #4ade80;
@@ -86,4 +86,57 @@ body {
 
 .hive-breathe {
   animation: hive-breathe 3s ease-in-out infinite;
+}
+
+/* 鍵盤焦點環 — 品牌琥珀，僅鍵盤導航時顯示（不干擾滑鼠點擊） */
+:focus-visible {
+  outline: 2px solid var(--color-honey-500);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+/*
+  優雅的 section 分隔 — 取代硬切 border-t。
+  一條從兩側淡出、中段帶品牌琥珀微光的髮絲線。
+*/
+.hive-divider {
+  position: relative;
+}
+.hive-divider::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(
+    to right,
+    transparent,
+    rgba(245, 166, 35, 0.28),
+    transparent
+  );
+}
+
+/*
+  導航連結 hover 下底線動畫 — 從中央向兩側展開。
+  active（當前頁）則維持滿版底線。
+*/
+.nav-underline {
+  position: relative;
+}
+.nav-underline::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: -0.35rem;
+  height: 1px;
+  width: 100%;
+  transform: scaleX(0);
+  transform-origin: center;
+  background-color: var(--color-honey-500);
+  transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.nav-underline:hover::after,
+.nav-underline[data-active='true']::after {
+  transform: scaleX(1);
 }

@@ -59,14 +59,14 @@ export function CtaFooter() {
         <Reveal className="mt-10 flex flex-wrap items-center justify-center gap-4" delay={0.1}>
           <a
             href="mailto:tech@vertexdistributor.com"
-            className="inline-flex items-center gap-2 rounded-full bg-honey-500 px-7 py-3 text-sm font-semibold text-bg-base transition-colors hover:bg-honey-400"
+            className="group inline-flex items-center gap-2 rounded-full bg-honey-500 px-7 py-3 text-sm font-semibold text-bg-base shadow-lg shadow-honey-500/20 transition-all duration-300 hover:scale-[1.03] hover:bg-honey-400 hover:shadow-honey-500/40 active:scale-[0.98]"
           >
             聯絡蜂巢
-            <span>→</span>
+            <span className="transition-transform duration-300 group-hover:translate-x-0.5">→</span>
           </a>
           <a
             href="#roster"
-            className="inline-flex items-center gap-2 rounded-full border border-comb-line px-7 py-3 text-sm font-medium text-text-primary transition-colors hover:border-honey-500/40 hover:bg-bg-overlay"
+            className="inline-flex items-center gap-2 rounded-full border border-comb-line px-7 py-3 text-sm font-medium text-text-primary transition-all duration-300 hover:scale-[1.03] hover:border-honey-500/40 hover:bg-bg-overlay active:scale-[0.98]"
           >
             重新認識員工
           </a>
@@ -91,7 +91,7 @@ export function CtaFooter() {
               <a
                 key={link.href}
                 href={link.href}
-                className="font-mono text-xs text-text-secondary transition-colors hover:text-honey-400"
+                className="nav-underline font-mono text-xs text-text-secondary transition-colors duration-300 hover:text-honey-400"
               >
                 {link.label}
               </a>

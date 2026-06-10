@@ -28,7 +28,7 @@ export function Navbar() {
         <Link
           href="/"
           onClick={() => setOpen(false)}
-          className="font-display text-xl font-semibold tracking-tight text-honey-500 transition-colors hover:text-honey-400"
+          className="font-display text-xl font-semibold tracking-tight text-honey-500 transition-all duration-300 hover:scale-[1.04] hover:text-honey-400 active:scale-95"
         >
           Apis
         </Link>
@@ -41,16 +41,14 @@ export function Navbar() {
               <li key={link.href}>
                 <Link
                   href={link.href}
-                  className={`relative font-mono text-sm transition-colors ${
+                  data-active={active}
+                  className={`nav-underline font-mono text-sm transition-colors duration-300 ${
                     active
                       ? 'text-honey-500'
                       : 'text-text-secondary hover:text-text-primary'
                   }`}
                 >
                   {link.label}
-                  {active && (
-                    <span className="absolute -bottom-1 left-0 h-px w-full bg-honey-500" />
-                  )}
                 </Link>
               </li>
             )

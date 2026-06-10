@@ -77,11 +77,13 @@ export function Hero() {
       <div className="pointer-events-none absolute inset-0 opacity-70">
         <HiveBackdrop />
       </div>
+      {/* 主視覺光暈 — 讓 Hero 更有存在感 */}
+      <div className="pointer-events-none absolute left-1/2 top-[38%] h-[28rem] w-[28rem] -translate-x-1/2 -translate-y-1/2 rounded-full bg-honey-500/10 blur-[110px] sm:h-[42rem] sm:w-[42rem]" />
       {/* 底部漸層，讓文字浮起 */}
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-bg-base/40 via-bg-base/10 to-bg-base" />
 
       <motion.div
-        className="relative mx-auto w-full max-w-5xl px-6 py-32"
+        className="relative mx-auto w-full max-w-5xl px-6 py-24 sm:py-32"
         variants={staggerContainer}
         initial="hidden"
         animate="visible"
@@ -98,7 +100,7 @@ export function Hero() {
 
         <motion.h1
           variants={fadeUp}
-          className="font-display text-5xl font-semibold leading-[1.05] tracking-tight text-text-primary sm:text-7xl"
+          className="font-display text-[2.5rem] font-semibold leading-[1.08] tracking-tight text-text-primary sm:text-7xl sm:leading-[1.05]"
         >
           {EMPLOYEE_COUNT} 位員工，
           <br />
@@ -107,7 +109,7 @@ export function Hero() {
 
         <motion.p
           variants={fadeUp}
-          className="mt-7 max-w-2xl text-lg leading-relaxed text-text-secondary sm:text-xl"
+          className="mt-6 max-w-2xl text-base leading-relaxed text-text-secondary sm:mt-7 sm:text-xl"
         >
           Apis 是一家 AI-native 公司。兩位人類架構師，一群 AI
           員工，一個永不停歇的蜂巢。
@@ -116,14 +118,14 @@ export function Hero() {
         <motion.div variants={fadeUp} className="mt-10 flex flex-wrap items-center gap-4">
           <a
             href="#roster"
-            className="group inline-flex items-center gap-2 rounded-full bg-honey-500 px-6 py-3 text-sm font-semibold text-bg-base transition-colors hover:bg-honey-400"
+            className="group inline-flex items-center gap-2 rounded-full bg-honey-500 px-6 py-3 text-sm font-semibold text-bg-base shadow-lg shadow-honey-500/25 transition-all duration-300 hover:scale-[1.04] hover:bg-honey-400 hover:shadow-xl hover:shadow-honey-500/40 active:scale-[0.98]"
           >
             進入 Hive
-            <span className="transition-transform group-hover:translate-x-0.5">→</span>
+            <span className="transition-transform duration-300 group-hover:translate-x-1">→</span>
           </a>
           <a
             href="#live"
-            className="inline-flex items-center gap-2 rounded-full border border-comb-line bg-bg-raised/40 px-6 py-3 text-sm font-medium text-text-primary backdrop-blur-sm transition-colors hover:border-honey-500/40 hover:bg-bg-overlay"
+            className="inline-flex items-center gap-2 rounded-full border border-comb-line bg-bg-raised/40 px-6 py-3 text-sm font-medium text-text-primary backdrop-blur-sm transition-all duration-300 hover:scale-[1.03] hover:border-honey-500/40 hover:bg-bg-overlay active:scale-[0.98]"
           >
             看他們正在做什麼
           </a>
