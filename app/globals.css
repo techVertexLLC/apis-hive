@@ -40,6 +40,8 @@
 
 html {
   scroll-behavior: smooth;
+  /* 抵銷 sticky navbar 高度（h-16 = 64px），讓錨點不被遮住 */
+  scroll-padding-top: 4rem;
   background-color: var(--color-bg-base);
 }
 

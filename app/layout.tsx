@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next'
 import { Fraunces, Inter, JetBrains_Mono } from 'next/font/google'
 import './globals.css'
 import { buildMetadata, organizationJsonLd } from '@/lib/seo'
+import { Navbar } from '@/components/Navbar'
 
 // Fraunces — 標題（可變字重 + optical size，蜂蜜般圓潤）
 const fraunces = Fraunces({
@@ -42,6 +43,7 @@ export default function RootLayout({
       className={`${fraunces.variable} ${inter.variable} ${jetbrainsMono.variable} h-full antialiased`}
     >
       <body className="min-h-full bg-bg-base text-text-primary">
+        <Navbar />
         {children}
         <script
           type="application/ld+json"
