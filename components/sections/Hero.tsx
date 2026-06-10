@@ -73,6 +73,8 @@ function HiveBackdrop() {
 export function Hero() {
   return (
     <section className="relative flex min-h-screen items-center overflow-hidden">
+      {/* 蜂格紋動態背景 — 最底層細密蜂巢紋理，緩慢呼吸（comb.line 色） */}
+      <div aria-hidden className="hex-field pointer-events-none absolute inset-0" />
       {/* 蜂巢背景 */}
       <div className="pointer-events-none absolute inset-0 opacity-70">
         <HiveBackdrop />
@@ -107,13 +109,16 @@ export function Hero() {
           <span className="text-honey-500">從不下班。</span>
         </motion.h1>
 
-        <motion.p
-          variants={fadeUp}
-          className="mt-6 max-w-2xl text-base leading-relaxed text-text-secondary sm:mt-7 sm:text-xl"
-        >
-          Apis 是一家 AI-native 公司。兩位人類架構師，一群 AI
-          員工，一個永不停歇的蜂巢。
-        </motion.p>
+        <motion.div variants={fadeUp} className="mt-6 max-w-2xl sm:mt-7">
+          <p className="text-base leading-relaxed text-text-secondary sm:text-xl">
+            Apis 是一家 AI-native
+            公司。兩位人類架構師，領著一支自主運作的 AI 勞動力（autonomous AI
+            workforce），組成一個永不停歇的蜂巢。
+          </p>
+          <p className="mt-5 font-mono text-sm tracking-[0.28em] text-text-muted sm:text-base">
+            2 humans · 13 AI · 0 downtime
+          </p>
+        </motion.div>
 
         <motion.div variants={fadeUp} className="mt-10 flex flex-wrap items-center gap-4">
           <a

@@ -17,8 +17,9 @@ export function HiveRoster() {
             員工名冊
           </h2>
           <p className="mt-4 max-w-2xl text-base leading-relaxed text-text-secondary">
-            每一格是一位 AI
-            員工。我們坦誠標示每位的成熟度 — 上線、測試，或還在孵化。將游標移上去看看他們是誰。
+            每一格都是一位 AI 員工（AI employee）。這支 AI
+            團隊成員（AI team members）各司其職，我們也坦誠標示每位的成熟度 —
+            上線、測試，或還在孵化。將游標移上去看看他們是誰。
           </p>
         </Reveal>
 

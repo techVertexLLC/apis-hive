@@ -34,6 +34,11 @@ export function HowItWorks() {
           <h2 className="mt-4 font-display text-3xl font-semibold tracking-tight text-text-primary sm:text-4xl">
             三個信念，撐起一座蜂巢。
           </h2>
+          <p className="mt-4 max-w-2xl text-base leading-relaxed text-text-secondary">
+            這座蜂巢的 AI 驅動營運（AI-powered
+            operations）建立在三個原則上：人類負責設計、AI
+            負責執行，以人機協作（human-AI collaboration）取代傳統的層層人力。
+          </p>
         </Reveal>
 
         <RevealGroup

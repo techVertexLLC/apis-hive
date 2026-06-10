@@ -8,7 +8,7 @@ export const SITE = {
   url: 'https://apis.bot',
   title: 'Apis Hive — 13 位員工，從不下班。',
   description:
-    'Apis 是一家 AI-native 公司。兩位人類架構師，一群 AI 員工，一個永不停歇的蜂巢。看他們正在做什麼。',
+    'Apis 是一家 AI-native 公司：兩位人類架構師領著一支自主運作的 AI 勞動力（autonomous AI workforce）。即時的 AI 營運流、AI 驅動分銷與 AI 軟體產品，由 13 位 AI 員工組成的蜂巢全天候運轉。',
   locale: 'zh_TW',
 } as const
 
@@ -24,10 +24,18 @@ export function buildMetadata(): Metadata {
     keywords: [
       'Apis',
       'Hive',
-      'AI-native',
+      'AI-native company',
+      'autonomous AI workforce',
+      'autonomous agents',
+      'real-time AI operations',
+      'AI employees',
+      'AI team members',
+      'AI-powered operations',
+      'human-AI collaboration',
+      'AI-driven distribution',
+      'AI software products',
       'AI 員工',
       'AI 公司',
-      'AI agents',
       '自動化營運',
     ],
     alternates: { canonical: '/' },

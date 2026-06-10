@@ -75,6 +75,7 @@ const DOT: Record<Stage, string> = {
 
 const MAX_ROWS = 8 // 畫面最多顯示的活動數（超過的從底部淡出移除）
 const SEED_ROWS = 7 // 初次載入先鋪墊的數量
+const MOBILE_COLLAPSED = 3 // 手機版收合時預設顯示的活動數
 const TODAY_BASE = 1843 // 「今日已處理」起算基數
 
 interface ActivityEntry {
@@ -107,6 +108,9 @@ function TaskCounter({ value }: { value: number }) {
 export function LiveActivity() {
   const [entries, setEntries] = useState<ActivityEntry[]>([])
   const [count, setCount] = useState(TODAY_BASE)
+  // 手機版收合：預設只顯示 3 條，桌面版（≥640px）一律顯示全部。
+  const [expanded, setExpanded] = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
 
   const idRef = useRef(0)
   const lastMsgRef = useRef<string>('')
@@ -163,6 +167,19 @@ export function LiveActivity() {
     }
   }, [])
 
+  // 偵測手機版斷點（< 640px，對齊 Tailwind sm）
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 639px)')
+    const update = () => setIsMobile(mq.matches)
+    update()
+    mq.addEventListener('change', update)
+    return () => mq.removeEventListener('change', update)
+  }, [])
+
+  // 手機收合時只取前 3 條；桌面或展開時顯示全部。
+  const visible = isMobile && !expanded ? entries.slice(0, MOBILE_COLLAPSED) : entries
+  const hiddenCount = entries.length - MOBILE_COLLAPSED
+
   return (
     <section id="live" className="relative border-t border-comb-line py-28">
       <div className="mx-auto w-full max-w-5xl px-6">
@@ -174,8 +191,8 @@ export function LiveActivity() {
             不是宣稱，是證據。
           </h2>
           <p className="mt-4 max-w-2xl text-base leading-relaxed text-text-secondary">
-            這是蜂巢的活動流。每一行都是某位 AI
-            員工剛剛完成的事 — 即時、未經修飾、持續滾動。
+            這是蜂巢的即時營運流（real-time AI operations）。每一行都是某個自主
+            AI 代理（autonomous agent）剛剛完成的任務 — 即時、未經修飾、持續滾動。
           </p>
         </Reveal>
 
@@ -196,7 +213,7 @@ export function LiveActivity() {
           {/* 訊息列：新訊息從頂端滑入，超出的從底部淡出 */}
           <div className="relative">
             <AnimatePresence initial={false} mode="popLayout">
-              {entries.map((entry, i) => (
+              {visible.map((entry, i) => (
                 <motion.div
                   key={entry.id}
                   layout
@@ -224,6 +241,35 @@ export function LiveActivity() {
               ))}
             </AnimatePresence>
           </div>
+
+          {/* 手機版「查看更多 / 收合」— 桌面（≥640px）隱藏，一律顯示全部 */}
+          {isMobile && hiddenCount > 0 && (
+            <button
+              type="button"
+              onClick={() => setExpanded((v) => !v)}
+              aria-expanded={expanded}
+              className="flex w-full items-center justify-center gap-1.5 border-t border-comb-line/60 px-5 py-3 font-mono text-xs text-honey-400 transition-colors hover:bg-bg-overlay/50 active:bg-bg-overlay sm:hidden"
+            >
+              {expanded ? '收合' : `查看更多 ${hiddenCount} 條`}
+              <motion.svg
+                width="12"
+                height="12"
+                viewBox="0 0 12 12"
+                fill="none"
+                aria-hidden
+                animate={{ rotate: expanded ? 180 : 0 }}
+                transition={{ duration: 0.3, ease: EASE }}
+              >
+                <path
+                  d="M2.5 4.5L6 8l3.5-3.5"
+                  stroke="currentColor"
+                  strokeWidth="1.4"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </motion.svg>
+            </button>
+          )}
 
           {/* 頁尾：今日計數器（count-up）+ 在線人數 */}
           <div className="flex items-center justify-between border-t border-comb-line/60 px-5 py-3.5 font-mono text-xs text-text-muted">
