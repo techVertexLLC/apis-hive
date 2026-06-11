@@ -3,6 +3,7 @@ import { LiveActivity } from '@/components/sections/LiveActivity'
 import { HiveRoster } from '@/components/sections/HiveRoster'
 import { HowItWorks } from '@/components/sections/HowItWorks'
 import { BusinessLines } from '@/components/sections/BusinessLines'
+import { Partners } from '@/components/sections/Partners'
 import { Architects } from '@/components/sections/Architects'
 import { CtaFooter } from '@/components/sections/CtaFooter'
 
@@ -14,6 +15,7 @@ export default function Home() {
       <HiveRoster />
       <HowItWorks />
       <BusinessLines />
+      <Partners />
       <Architects />
       <CtaFooter />
     </main>
