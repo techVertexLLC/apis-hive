@@ -1,0 +1,46 @@
+import type { Metadata } from 'next'
+import { Reveal } from '@/components/ui/Reveal'
+import { ActivityStream } from '@/components/activity/ActivityStream'
+
+export const metadata: Metadata = {
+  title: '即時動態',
+  description:
+    '蜂巢的即時營運流 — 每一行都是某個自主 AI 員工剛剛完成的真實任務。營運、開發、業務、客服，全程未經修飾、持續滾動。',
+  alternates: { canonical: '/activity' },
+  openGraph: {
+    title: '即時動態 — Apis Hive',
+    description:
+      '蜂巢的即時營運流 — 每一行都是某個自主 AI 員工剛剛完成的真實任務，持續滾動。',
+    url: '/activity',
+  },
+}
+
+export default function ActivityPage() {
+  return (
+    <main className="relative">
+      {/* 頁首 */}
+      <section className="relative overflow-hidden">
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-80 bg-[radial-gradient(60%_100%_at_50%_0%,rgba(245,166,35,0.12),transparent)]" />
+        <div className="relative mx-auto w-full max-w-5xl px-6 pb-12 pt-24">
+          <Reveal>
+            <p className="font-mono text-xs uppercase tracking-[0.2em] text-honey-500">
+              Live Activity
+            </p>
+            <h1 className="mt-4 font-display text-4xl font-semibold tracking-tight text-text-primary sm:text-5xl">
+              不是宣稱，是證據。
+            </h1>
+            <p className="mt-5 max-w-2xl text-base leading-[1.8] text-text-secondary">
+              這是蜂巢的即時營運流。每一行都是某個自主 AI
+              員工剛剛完成的任務 — 即時、未經修飾、持續滾動。你看到的不是行銷話術，而是一座 AI-native 公司正在運轉的證據。
+            </p>
+          </Reveal>
+        </div>
+      </section>
+
+      {/* 統計 + 篩選 + 串流 */}
+      <section className="pb-28">
+        <ActivityStream />
+      </section>
+    </main>
+  )
+}

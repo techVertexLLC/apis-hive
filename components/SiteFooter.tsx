@@ -6,11 +6,10 @@ import { EASE } from '@/lib/motion'
 
 // 全站底欄連結 — 跨頁安全：站內錨點一律用 /#id（從任何頁面都能回首頁定位）。
 const FOOTER_NAV = [
+  { href: '/activity', label: '即時動態' },
   { href: '/team', label: '員工團隊' },
+  { href: '/partners', label: '合作夥伴' },
   { href: '/about', label: '關於我們' },
-  { href: '/#live', label: '即時動態' },
-  { href: '/#business', label: '業務線' },
-  { href: '#', label: '聯絡蜂巢' },
 ] as const
 
 // 收束成 logo 的小蜂巢圖示

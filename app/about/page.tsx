@@ -1,6 +1,8 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { Reveal, RevealGroup, RevealItem } from '@/components/ui/Reveal'
+import { BusinessLines } from '@/components/sections/BusinessLines'
+import { Architects } from '@/components/sections/Architects'
 import { EMPLOYEE_COUNT } from '@/lib/employees'
 
 export const metadata: Metadata = {
@@ -218,7 +220,13 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* Section 4 — Build the Hive, Fertile the Field */}
+      {/* Section 4 — 兩條業務線（整合自 BusinessLines） */}
+      <BusinessLines />
+
+      {/* Section 5 — 兩位架構師（整合自 Architects） */}
+      <Architects />
+
+      {/* Section 6 — Build the Hive, Fertile the Field */}
       <section className="relative overflow-hidden border-t border-comb-line">
         <div className="pointer-events-none absolute inset-x-0 bottom-0 h-80 bg-[radial-gradient(60%_100%_at_50%_100%,rgba(245,166,35,0.14),transparent)]" />
         <div className="relative mx-auto w-full max-w-4xl px-6 py-28 text-center">
@@ -237,13 +245,13 @@ export default function AboutPage() {
           </Reveal>
 
           <Reveal className="mt-10 flex flex-wrap items-center justify-center gap-4" delay={0.1}>
-            <a
-              href="#"
+            <Link
+              href="/partners"
               className="group inline-flex items-center gap-2 rounded-full bg-honey-500 px-7 py-3 text-sm font-semibold text-bg-base shadow-lg shadow-honey-500/20 transition-all duration-300 hover:scale-[1.03] hover:bg-honey-400 hover:shadow-honey-500/40 active:scale-[0.98]"
             >
               一起建造蜂箱
               <span className="transition-transform duration-300 group-hover:translate-x-0.5">→</span>
-            </a>
+            </Link>
             <Link
               href="/team"
               className="inline-flex items-center gap-2 rounded-full border border-comb-line px-7 py-3 text-sm font-medium text-text-primary transition-all duration-300 hover:scale-[1.03] hover:border-honey-500/40 hover:bg-bg-overlay active:scale-[0.98]"

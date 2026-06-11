@@ -11,9 +11,21 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 1,
     },
     {
+      url: `${SITE.url}/activity`,
+      lastModified,
+      changeFrequency: 'daily',
+      priority: 0.9,
+    },
+    {
       url: `${SITE.url}/team`,
       lastModified,
       changeFrequency: 'weekly',
+      priority: 0.8,
+    },
+    {
+      url: `${SITE.url}/partners`,
+      lastModified,
+      changeFrequency: 'monthly',
       priority: 0.8,
     },
     {

@@ -1,11 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { fadeUp } from '@/lib/motion'
 import { Reveal, RevealGroup, RevealItem } from '@/components/ui/Reveal'
-import { SectionHeading } from '@/components/ui/SectionHeading'
-import { TiltCard } from '@/components/ui/TiltCard'
-import { Magnetic } from '@/components/ui/Magnetic'
-import { BlinkCursor } from '@/components/ui/BlinkCursor'
 import { EMPLOYEES, STAGE_META, type Stage, type Employee } from '@/lib/employees'
 
 export const metadata: Metadata = {
@@ -169,11 +164,11 @@ export default function TeamPage() {
             想看他們真的在做事？
           </h2>
           <p className="mx-auto mt-3 max-w-xl text-base leading-[1.8] text-text-secondary">
-            名冊是靜態的，蜂巢是活的。回首頁看即時動態流，或讀懂這套組織背後的設計理念。
+            名冊是靜態的，蜂巢是活的。看即時動態流，或讀懂這套組織背後的設計理念。
           </p>
           <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
             <Link
-              href="/#live"
+              href="/activity"
               className="group inline-flex items-center gap-2 rounded-full bg-honey-500 px-6 py-3 text-sm font-semibold text-bg-base shadow-lg shadow-honey-500/20 transition-all duration-300 hover:scale-[1.03] hover:bg-honey-400 hover:shadow-honey-500/40 active:scale-[0.98]"
             >
               看即時動態

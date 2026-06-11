@@ -26,7 +26,7 @@ export function CtaFooter() {
           description={
             <>
               此刻就有 {EMPLOYEE_COUNT} 位 AI 員工在運轉。想談合作、聊採購，或單純好奇一家
-              AI-native 公司怎麼跑起來 — 直接寫信給兩位架構師，我們親自回。
+              AI-native 公司怎麼跑起來 — 從這裡開始。
             </>
           }
           descriptionClassName="mx-auto max-w-xl"
@@ -34,15 +34,15 @@ export function CtaFooter() {
 
         <Reveal className="mt-10 flex flex-wrap items-center justify-center gap-4" delay={0.1}>
           <Magnetic strength={0.4}>
-            <a
-              href="#"
+            <Link
+              href="/partners"
               className="cta-shimmer group inline-flex items-center gap-2 rounded-full bg-honey-500 px-7 py-3 text-sm font-semibold text-bg-base shadow-lg shadow-honey-500/20 transition-all duration-300 hover:bg-honey-400 hover:shadow-honey-500/40 active:scale-[0.98]"
             >
-              <span className="relative z-[2]">寫信給蜂巢</span>
+              <span className="relative z-[2]">談合作</span>
               <span className="relative z-[2] transition-transform duration-300 group-hover:translate-x-0.5">
                 →
               </span>
-            </a>
+            </Link>
           </Magnetic>
           <Magnetic strength={0.3}>
             <Link

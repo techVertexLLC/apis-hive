@@ -9,7 +9,9 @@ import { EASE, SPRING_SOFT } from '@/lib/motion'
 // 全站導航連結。品牌名保留英文，分頁標籤用簡潔字樣。
 const NAV_LINKS = [
   { href: '/', label: 'Home' },
+  { href: '/activity', label: 'Activity' },
   { href: '/team', label: 'Team' },
+  { href: '/partners', label: 'Partners' },
   { href: '/about', label: 'About' },
 ] as const
 
@@ -35,7 +37,7 @@ export function Navbar() {
         </Link>
 
         {/* 右側：桌面版連結 */}
-        <ul className="hidden items-center gap-8 sm:flex">
+        <ul className="hidden items-center gap-6 sm:flex md:gap-8">
           {NAV_LINKS.map((link) => {
             const active = isActive(link.href)
             return (

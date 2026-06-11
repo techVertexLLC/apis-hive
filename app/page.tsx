@@ -1,22 +1,14 @@
 import { Hero } from '@/components/sections/Hero'
-import { LiveActivity } from '@/components/sections/LiveActivity'
-import { HiveRoster } from '@/components/sections/HiveRoster'
-import { HowItWorks } from '@/components/sections/HowItWorks'
-import { BusinessLines } from '@/components/sections/BusinessLines'
-import { Partners } from '@/components/sections/Partners'
-import { Architects } from '@/components/sections/Architects'
+import { LiveActivityPreview } from '@/components/sections/LiveActivityPreview'
+import { EmployeePreview } from '@/components/sections/EmployeePreview'
 import { CtaFooter } from '@/components/sections/CtaFooter'
 
 export default function Home() {
   return (
     <main className="relative">
       <Hero />
-      <LiveActivity />
-      <HiveRoster />
-      <HowItWorks />
-      <BusinessLines />
-      <Partners />
-      <Architects />
+      <LiveActivityPreview />
+      <EmployeePreview />
       <CtaFooter />
     </main>
   )
