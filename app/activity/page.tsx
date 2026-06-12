@@ -6,12 +6,12 @@ import { ActivityStream } from '@/components/activity/ActivityStream'
 export const metadata: Metadata = {
   title: '即時動態',
   description:
-    '蜂巢的即時營運流 — 每一行都是某個自主 AI 員工剛剛完成的真實任務。營運、開發、業務、客服，全程未經修飾、持續滾動。',
+    '蜂巢的即時營運流 — 以真實任務為藍本的模擬動態，展示 AI 員工們日常處理的工作類型與節奏。',
   alternates: { canonical: '/activity' },
   openGraph: {
     title: '即時動態 — Apis Hive',
     description:
-      '蜂巢的即時營運流 — 每一行都是某個自主 AI 員工剛剛完成的真實任務，持續滾動。',
+      '蜂巢的即時營運流 — 以真實任務為藍本的模擬動態，持續滾動。',
     url: '/activity',
   },
 }
@@ -32,8 +32,8 @@ export default function ActivityPage() {
                 不是宣稱，是證據。
               </h1>
               <p className="mt-5 max-w-2xl text-base leading-[1.8] text-text-secondary">
-                這是蜂巢的即時營運流。每一行都是某個自主 AI
-                員工剛剛完成的任務 — 即時、未經修飾、持續滾動。你看到的不是行銷話術，而是一座 AI-native 公司正在運轉的證據。
+                這是蜂巢的即時營運流。每一行都是以真實任務為藍本的模擬動態 —
+                展示 AI 員工們日常處理的工作類型與節奏。
               </p>
             </Reveal>
             <Reveal delay={0.2}>

@@ -1,14 +1,14 @@
 // lib/seo.ts
 // 集中管理站台 metadata 與結構化資料（JSON-LD）。
 import type { Metadata } from 'next'
+import { EMPLOYEE_COUNT } from '@/lib/employees'
 
 export const SITE = {
   name: 'Apis',
   brand: 'Hive',
   url: 'https://apis.bot',
-  title: 'Apis Hive — 13 位員工，從不下班。',
-  description:
-    'Apis 是一家 AI-native 公司：兩位人類架構師領著一支自主運作的 AI 勞動力（autonomous AI workforce）。即時的 AI 營運流、AI 驅動分銷與 AI 軟體產品，由 13 位 AI 員工組成的蜂巢全天候運轉。',
+  get title() { return `Apis Hive — ${EMPLOYEE_COUNT} 位員工，從不下班。` },
+  get description() { return `Apis 是一家 AI-native 公司：兩位人類架構師領著一支自主運作的 AI 勞動力（autonomous AI workforce）。即時的 AI 營運流、AI 驅動分銷與 AI 軟體產品，由 ${EMPLOYEE_COUNT} 位 AI 員工組成的蜂巢全天候運轉。` },
   locale: 'zh_TW',
 } as const
 
@@ -46,6 +46,7 @@ export function buildMetadata(): Metadata {
       siteName: `${SITE.name} ${SITE.brand}`,
       title: SITE.title,
       description: SITE.description,
+      images: [{ url: '/og-image.png', width: 1200, height: 630, alt: SITE.title }],
     },
     twitter: {
       card: 'summary_large_image',
@@ -68,7 +69,7 @@ export function organizationJsonLd() {
     alternateName: `${SITE.name} ${SITE.brand}`,
     url: SITE.url,
     description: SITE.description,
-    slogan: '13 位員工，從不下班。',
+    slogan: `${EMPLOYEE_COUNT} 位員工，從不下班。`,
     foundingDate: '2025',
     knowsAbout: ['AI-native operations', 'Autonomous AI agents', 'Distribution', 'Software products'],
   } as const

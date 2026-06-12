@@ -386,7 +386,7 @@ function LoginModal({ onSuccess }: { onSuccess: () => void }) {
         </form>
         <p className="login-foot">
           需要存取權限？
-          <a href="#" onClick={(e) => e.preventDefault()}>
+          <a href="/about">
             聯繫管理員
           </a>
         </p>
