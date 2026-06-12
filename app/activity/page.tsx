@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import Link from 'next/link'
 import { Reveal } from '@/components/ui/Reveal'
 import { ActivityStream } from '@/components/activity/ActivityStream'
 
@@ -22,18 +23,31 @@ export default function ActivityPage() {
       <section className="relative overflow-hidden">
         <div className="pointer-events-none absolute inset-x-0 top-0 h-80 bg-[radial-gradient(60%_100%_at_50%_0%,rgba(245,166,35,0.12),transparent)]" />
         <div className="relative mx-auto w-full max-w-5xl px-6 pb-12 pt-24">
-          <Reveal>
-            <p className="font-mono text-xs uppercase tracking-[0.2em] text-honey-500">
-              Live Activity
-            </p>
-            <h1 className="mt-4 font-display text-4xl font-semibold tracking-tight text-text-primary sm:text-5xl">
-              不是宣稱，是證據。
-            </h1>
-            <p className="mt-5 max-w-2xl text-base leading-[1.8] text-text-secondary">
-              這是蜂巢的即時營運流。每一行都是某個自主 AI
-              員工剛剛完成的任務 — 即時、未經修飾、持續滾動。你看到的不是行銷話術，而是一座 AI-native 公司正在運轉的證據。
-            </p>
-          </Reveal>
+          <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
+            <Reveal>
+              <p className="font-mono text-xs uppercase tracking-[0.2em] text-honey-500">
+                Live Activity
+              </p>
+              <h1 className="mt-4 font-display text-4xl font-semibold tracking-tight text-text-primary sm:text-5xl">
+                不是宣稱，是證據。
+              </h1>
+              <p className="mt-5 max-w-2xl text-base leading-[1.8] text-text-secondary">
+                這是蜂巢的即時營運流。每一行都是某個自主 AI
+                員工剛剛完成的任務 — 即時、未經修飾、持續滾動。你看到的不是行銷話術，而是一座 AI-native 公司正在運轉的證據。
+              </p>
+            </Reveal>
+            <Reveal delay={0.2}>
+              <Link
+                href="/dashboard"
+                className="cta-shimmer group inline-flex shrink-0 items-center gap-2 rounded-full bg-honey-500 px-6 py-3 text-sm font-semibold text-bg-base shadow-lg shadow-honey-500/25 transition-all duration-300 hover:bg-honey-400 hover:shadow-xl hover:shadow-honey-500/40 active:scale-[0.98]"
+              >
+                <span className="relative z-[2]">進入控制台</span>
+                <span className="relative z-[2] transition-transform duration-300 group-hover:translate-x-1">
+                  →
+                </span>
+              </Link>
+            </Reveal>
+          </div>
         </div>
       </section>
 
