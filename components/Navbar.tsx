@@ -13,6 +13,7 @@ const NAV_LINKS = [
   { href: '/team', label: 'Team' },
   { href: '/partners', label: 'Partners' },
   { href: '/about', label: 'About' },
+  { href: '/dashboard', label: 'Dashboard' },
 ] as const
 
 export function Navbar() {
