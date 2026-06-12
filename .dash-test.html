@@ -1060,5 +1060,14 @@ function startSideLog(){
 }
 function stopDash(){if(sideTimer){clearInterval(sideTimer);sideTimer=null;}}
 </script>
+<script>
+window.addEventListener('load',()=>{
+  document.getElementById('screen-public').classList.remove('active');
+  document.getElementById('screen-dash').classList.add('active');
+  initDash();
+  document.querySelector('.tab[data-pane="proj"]').click();
+  showProjDetail('LED-Startup');
+});
+</script>
 </body>
 </html>
