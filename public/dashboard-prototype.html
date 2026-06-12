@@ -1,0 +1,713 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Apis Hive · Dashboard Prototype</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+/* ============================================================
+   Hive Design Tokens — 暖黑 #0B0A09 + 琥珀 #F5A623
+   Fraunces(標題) · Inter(內文) · JetBrains Mono(數據/log)
+   ============================================================ */
+:root{
+  --bg-base:#0B0A09;
+  --bg-raised:#13110E;
+  --bg-overlay:#1C1813;
+
+  --honey-300:#FFD89B;
+  --honey-400:#FFC56B;
+  --honey-500:#F5A623;
+  --honey-600:#D98818;
+
+  --comb-line:rgba(245,166,35,0.14);
+  --comb-glow:rgba(245,166,35,0.35);
+
+  --text-primary:#F5F1EA;
+  --text-secondary:#B3ADA4;
+  --text-muted:#8A847A;
+
+  --status-live:#4ADE80;     /* active 綠 */
+  --status-working:#F5A623;  /* working 琥珀 */
+  --status-idle:#6B655C;     /* idle 灰 */
+  --status-beta:#60A5FA;     /* incubating 藍 */
+  --status-blocked:#F87171;  /* blocked 紅 */
+
+  --font-display:'Fraunces',ui-serif,Georgia,serif;
+  --font-sans:'Inter',ui-sans-serif,system-ui,sans-serif;
+  --font-mono:'JetBrains Mono',ui-monospace,monospace;
+
+  --ease:cubic-bezier(0.22,1,0.36,1);
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;background:var(--bg-base)}
+body{
+  background:var(--bg-base);
+  color:var(--text-primary);
+  font-family:var(--font-sans);
+  line-height:1.7;
+  letter-spacing:0.01em;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  font-feature-settings:'kern','liga','calt';
+  min-height:100vh;
+  overflow-x:hidden;
+}
+.mono{font-family:var(--font-mono);font-feature-settings:'tnum','zero'}
+.display{font-family:var(--font-display)}
+.tnum{font-variant-numeric:tabular-nums;font-feature-settings:'tnum','zero'}
+button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+::selection{background:rgba(245,166,35,0.28);color:var(--text-primary)}
+::-webkit-scrollbar{width:9px;height:9px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(245,166,35,0.18);border-radius:99px}
+::-webkit-scrollbar-thumb:hover{background:rgba(245,166,35,0.32)}
+:focus-visible{outline:2px solid var(--honey-500);outline-offset:3px;border-radius:4px}
+
+/* 蜂格紋背景 */
+.hex-field{
+  position:fixed;inset:0;z-index:0;pointer-events:none;
+  background-image:url("data:image/svg+xml,%3Csvg width='28' height='49' viewBox='0 0 28 49' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M13.99 9.25l13 7.5v15l-13 7.5L1 31.75v-15l12.99-7.5zM3 17.9v12.7l10.99 6.34 11-6.35V17.9l-11-6.34L3 17.9zM0 15l12.98-7.5V0h-2v6.35L0 12.69v2.3zm0 18.5L12.98 41v8h-2v-6.85L0 35.81v-2.3zM15 0v7.5L27.99 15H28v-2.31h-.01L17 6.35V0h-2zm0 49v-8l12.99-7.5H28v2.31h-.01L17 42.15V49h-2z' fill='rgba(245,166,35,0.14)' fill-rule='evenodd'/%3E%3C/svg%3E");
+  background-size:56px 98px;
+  opacity:0.5;
+  animation:hex-breathe 11s ease-in-out infinite;
+}
+@keyframes hex-breathe{0%,100%{opacity:0.4;background-position:0 0}50%{opacity:0.7;background-position:0 -14px}}
+
+/* 呼吸燈 */
+@keyframes hive-breathe{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.45;transform:scale(0.82)}}
+.breathe{animation:hive-breathe 3s ease-in-out infinite}
+
+.dot{display:inline-block;width:8px;height:8px;border-radius:99px;flex-shrink:0}
+.dot-active{background:var(--status-live)}
+.dot-working{background:var(--status-working)}
+.dot-idle{background:var(--status-idle)}
+.dot-incubating{background:var(--status-beta)}
+.dot-blocked{background:var(--status-blocked)}
+
+/* ============================================================
+   SCREEN 管理
+   ============================================================ */
+.screen{display:none}
+.screen.active{display:block}
+
+/* ============================================================
+   畫面 1：公開版 /activity
+   ============================================================ */
+.public-wrap{position:relative;z-index:1;max-width:1180px;margin:0 auto;padding:0 24px}
+.public-nav{
+  position:sticky;top:0;z-index:20;
+  display:flex;align-items:center;justify-content:space-between;
+  height:64px;
+  border-bottom:1px solid var(--comb-line);
+  background:rgba(11,10,9,0.82);
+  backdrop-filter:blur(14px);
+  padding:0 24px;
+}
+.brand{display:flex;align-items:center;gap:10px;font-family:var(--font-display);font-weight:600;font-size:18px;letter-spacing:-0.01em}
+.brand-mark{
+  width:26px;height:26px;border-radius:7px;
+  background:radial-gradient(circle at 35% 30%,var(--honey-400),var(--honey-600));
+  box-shadow:0 0 22px rgba(245,166,35,0.4);
+  display:grid;place-items:center;font-size:13px;color:#0B0A09;font-weight:800;
+}
+.btn-amber{
+  display:inline-flex;align-items:center;gap:8px;
+  background:var(--honey-500);color:#0B0A09;
+  font-weight:600;font-size:14px;
+  padding:9px 18px;border-radius:99px;
+  transition:transform .25s var(--ease),box-shadow .25s var(--ease),background .25s var(--ease);
+  box-shadow:0 0 0 rgba(245,166,35,0);
+}
+.btn-amber:hover{background:var(--honey-400);box-shadow:0 8px 28px rgba(245,166,35,0.32);transform:translateY(-1px)}
+.btn-amber:active{transform:translateY(0) scale(.98)}
+.btn-ghost{
+  display:inline-flex;align-items:center;gap:8px;
+  border:1px solid var(--comb-line);color:var(--text-secondary);
+  font-weight:500;font-size:14px;padding:8px 16px;border-radius:99px;background:rgba(19,17,14,0.4);
+  transition:all .25s var(--ease);
+}
+.btn-ghost:hover{border-color:rgba(245,166,35,0.4);color:var(--text-primary);background:var(--bg-overlay)}
+
+.public-hero{position:relative;overflow:hidden}
+.hero-glow{position:absolute;inset:0 0 auto 0;height:320px;background:radial-gradient(60% 100% at 50% 0%,rgba(245,166,35,0.12),transparent);pointer-events:none}
+.eyebrow{font-family:var(--font-mono);font-size:12px;text-transform:uppercase;letter-spacing:0.2em;color:var(--honey-500)}
+.public-hero h1{font-family:var(--font-display);font-size:clamp(34px,5vw,52px);font-weight:600;letter-spacing:-0.02em;line-height:1.08;margin-top:16px}
+.public-hero p.lead{margin-top:20px;max-width:640px;color:var(--text-secondary);font-size:16px;line-height:1.85}
+
+.stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:8px}
+.stat-card{border:1px solid var(--comb-line);background:var(--bg-raised);border-radius:16px;padding:22px;transition:border-color .3s var(--ease)}
+.stat-card:hover{border-color:rgba(245,166,35,0.4)}
+.stat-label{font-family:var(--font-mono);font-size:11px;text-transform:uppercase;letter-spacing:0.16em;color:var(--text-muted)}
+.stat-value{font-family:var(--font-display);font-size:34px;font-weight:600;color:var(--honey-400);margin-top:10px}
+.stat-hint{font-size:12px;color:var(--text-muted);margin-top:6px}
+
+.stream-shell{margin-top:24px;border:1px solid var(--comb-line);background:rgba(19,17,14,0.6);border-radius:16px;overflow:hidden}
+.stream-head{display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(245,166,35,0.1);padding:12px 20px;font-family:var(--font-mono);font-size:12px;color:var(--text-muted)}
+.stream-live{display:inline-flex;align-items:center;gap:8px;color:var(--status-live)}
+.stream-body{min-height:200px;position:relative}
+.row{
+  display:flex;align-items:flex-start;gap:14px;
+  border-bottom:1px solid rgba(245,166,35,0.08);
+  padding:13px 20px;font-family:var(--font-mono);font-size:13px;position:relative;overflow:hidden;
+  transition:background .3s var(--ease);
+  animation:rowIn .5s var(--ease) both;
+}
+.row:hover{background:rgba(245,166,35,0.045)}
+.row::before{content:'';position:absolute;left:0;top:0;height:100%;width:3px;background:var(--bar,var(--status-working));animation:barIn .5s var(--ease) .05s both}
+@keyframes rowIn{from{opacity:0;transform:translateY(-18px)}to{opacity:1;transform:translateY(0)}}
+@keyframes barIn{from{transform:scaleY(0)}to{transform:scaleY(1)}}
+.row .t{color:var(--text-muted);flex-shrink:0;padding-top:1px}
+.row .m{flex:1;color:var(--text-secondary);line-height:1.7}
+.row .who{color:var(--honey-400);font-weight:600}
+.row .tag{margin-left:8px;border:1px solid var(--comb-line);border-radius:5px;padding:1px 6px;font-size:10px;color:var(--text-muted)}
+
+/* ============================================================
+   畫面 2：登入 Modal
+   ============================================================ */
+.overlay{
+  position:fixed;inset:0;z-index:100;
+  display:flex;align-items:center;justify-content:center;padding:24px;
+  background:rgba(8,7,6,0.72);backdrop-filter:blur(8px);
+  opacity:0;pointer-events:none;transition:opacity .35s var(--ease);
+}
+.overlay.show{opacity:1;pointer-events:auto}
+.login-card{
+  width:100%;max-width:400px;
+  border:1px solid var(--comb-line);
+  background:linear-gradient(180deg,var(--bg-overlay),var(--bg-raised));
+  border-radius:20px;padding:34px 30px;
+  box-shadow:0 30px 80px rgba(0,0,0,0.6),0 0 0 1px rgba(245,166,35,0.06);
+  transform:translateY(16px) scale(.97);opacity:0;
+  transition:transform .4s var(--ease),opacity .4s var(--ease);
+}
+.overlay.show .login-card{transform:translateY(0) scale(1);opacity:1}
+.login-mark{width:44px;height:44px;border-radius:12px;background:radial-gradient(circle at 35% 30%,var(--honey-400),var(--honey-600));display:grid;place-items:center;color:#0B0A09;font-weight:800;font-size:20px;box-shadow:0 0 30px rgba(245,166,35,0.4);margin-bottom:18px}
+.login-card h2{font-family:var(--font-display);font-size:24px;font-weight:600;letter-spacing:-0.01em}
+.login-card .sub{color:var(--text-secondary);font-size:13px;margin-top:8px;line-height:1.7}
+.field{margin-top:24px}
+.field label{display:block;font-family:var(--font-mono);font-size:11px;text-transform:uppercase;letter-spacing:0.14em;color:var(--text-muted);margin-bottom:9px}
+.field input{
+  width:100%;background:var(--bg-base);border:1px solid var(--comb-line);
+  border-radius:11px;padding:13px 15px;color:var(--text-primary);
+  font-family:var(--font-mono);font-size:14px;letter-spacing:0.04em;
+  transition:border-color .25s var(--ease),box-shadow .25s var(--ease);
+}
+.field input::placeholder{color:var(--text-muted);letter-spacing:0.18em}
+.field input:focus{outline:none;border-color:rgba(245,166,35,0.5);box-shadow:0 0 0 3px rgba(245,166,35,0.12)}
+.login-submit{
+  width:100%;margin-top:22px;background:var(--honey-500);color:#0B0A09;
+  font-weight:700;font-size:15px;padding:13px;border-radius:11px;
+  transition:transform .2s var(--ease),background .25s var(--ease),box-shadow .25s var(--ease);
+}
+.login-submit:hover{background:var(--honey-400);box-shadow:0 10px 30px rgba(245,166,35,0.3)}
+.login-submit:active{transform:scale(.98)}
+.login-foot{text-align:center;margin-top:20px;font-size:12px;color:var(--text-muted)}
+.login-foot a{color:var(--honey-500);text-decoration:none}
+.login-foot a:hover{text-decoration:underline}
+.login-close{position:absolute;top:16px;right:16px;width:32px;height:32px;border-radius:8px;color:var(--text-muted);display:grid;place-items:center;font-size:18px;transition:all .2s var(--ease)}
+.login-close:hover{background:var(--bg-overlay);color:var(--text-primary)}
+
+/* ============================================================
+   畫面 3：Dashboard
+   ============================================================ */
+.dash{position:relative;z-index:1;min-height:100vh;animation:fadeUp .5s var(--ease)}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+.dash-top{
+  position:sticky;top:0;z-index:30;
+  display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:18px;
+  height:66px;padding:0 24px;
+  border-bottom:1px solid var(--comb-line);
+  background:rgba(11,10,9,0.85);backdrop-filter:blur(16px);
+}
+.summary-bar{
+  justify-self:center;display:flex;align-items:center;gap:18px;
+  font-family:var(--font-mono);font-size:12.5px;color:var(--text-secondary);
+  border:1px solid var(--comb-line);background:rgba(19,17,14,0.5);
+  padding:7px 18px;border-radius:99px;
+}
+.summary-bar .seg{display:inline-flex;align-items:center;gap:7px}
+.summary-bar .div{width:1px;height:13px;background:var(--comb-line)}
+.dash-top-right{display:flex;align-items:center;gap:14px;justify-self:end}
+.last-update{font-family:var(--font-mono);font-size:11.5px;color:var(--text-muted);white-space:nowrap}
+.btn-logout{border:1px solid var(--comb-line);color:var(--text-secondary);font-size:13px;padding:7px 14px;border-radius:9px;transition:all .25s var(--ease)}
+.btn-logout:hover{border-color:rgba(248,113,113,0.4);color:#fca5a5}
+
+.dash-body{display:grid;grid-template-columns:1fr 332px;gap:0;align-items:start}
+@media(max-width:1080px){.dash-body{grid-template-columns:1fr}}
+
+.dash-main{padding:26px 28px 80px;min-width:0}
+
+/* Tabs */
+.tabs{position:relative;display:inline-flex;gap:4px;border:1px solid var(--comb-line);background:var(--bg-raised);border-radius:12px;padding:5px;margin-bottom:26px}
+.tab{position:relative;z-index:2;padding:9px 22px;border-radius:8px;font-size:14px;font-weight:500;color:var(--text-secondary);transition:color .3s var(--ease)}
+.tab.active{color:#0B0A09}
+.tab-indicator{position:absolute;z-index:1;top:5px;height:calc(100% - 10px);background:var(--honey-500);border-radius:8px;transition:transform .4s var(--ease),width .4s var(--ease);box-shadow:0 4px 16px rgba(245,166,35,0.3)}
+
+.pane{display:none;animation:paneIn .45s var(--ease)}
+.pane.active{display:block}
+@keyframes paneIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+/* Tab1 員工卡 grid */
+.emp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:18px}
+.emp-card{
+  position:relative;border:1px solid var(--comb-line);background:var(--bg-raised);
+  border-radius:16px;padding:20px;overflow:hidden;
+  transition:border-color .3s var(--ease),transform .3s var(--ease),box-shadow .3s var(--ease);
+  transform-style:preserve-3d;
+}
+.emp-card::after{content:'';position:absolute;inset:0;border-radius:inherit;opacity:0;transition:opacity .3s var(--ease);background:var(--glow,radial-gradient(circle at 50% 0%,rgba(245,166,35,0.14),transparent 60%));pointer-events:none}
+.emp-card:hover{border-color:rgba(245,166,35,0.42);box-shadow:0 18px 50px rgba(0,0,0,0.45)}
+.emp-card:hover::after{opacity:1}
+.emp-head{display:flex;align-items:center;gap:11px;position:relative;z-index:1}
+.emp-avatar{width:38px;height:38px;border-radius:11px;display:grid;place-items:center;font-family:var(--font-display);font-weight:600;font-size:16px;color:#0B0A09;flex-shrink:0}
+.emp-name{font-weight:600;font-size:15.5px;display:flex;align-items:center;gap:8px}
+.emp-role{font-size:12px;color:var(--text-muted);font-family:var(--font-mono)}
+.emp-status-pill{margin-left:auto;display:inline-flex;align-items:center;gap:6px;font-family:var(--font-mono);font-size:10.5px;text-transform:uppercase;letter-spacing:0.08em;border:1px solid var(--comb-line);border-radius:99px;padding:3px 9px;color:var(--text-secondary)}
+.task-block{margin-top:16px;position:relative;z-index:1}
+.task-block .tb-label{font-family:var(--font-mono);font-size:10.5px;text-transform:uppercase;letter-spacing:0.14em;color:var(--text-muted);margin-bottom:9px}
+.task-item{display:flex;align-items:flex-start;gap:9px;padding:5px 0;font-size:13.5px;color:var(--text-secondary);line-height:1.55}
+.task-item .pri{margin-top:6px;width:5px;height:5px;border-radius:99px;background:var(--honey-500);flex-shrink:0}
+.task-item.idle .pri{background:var(--status-idle)}
+.task-item:first-of-type{color:var(--text-primary)}
+.emp-foot{margin-top:16px;padding-top:14px;border-top:1px solid rgba(245,166,35,0.09);display:flex;align-items:center;justify-content:space-between;gap:10px;position:relative;z-index:1}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font-family:var(--font-mono);font-size:10.5px;border:1px solid var(--comb-line);border-radius:6px;padding:2px 8px;color:var(--text-secondary);background:rgba(245,166,35,0.04)}
+.emp-time{font-family:var(--font-mono);font-size:11px;color:var(--text-muted);white-space:nowrap}
+
+/* Tab2 專案 */
+.proj-list{display:flex;flex-direction:column;gap:18px}
+.proj-card{border:1px solid var(--comb-line);background:var(--bg-raised);border-radius:16px;padding:22px;transition:border-color .3s var(--ease)}
+.proj-card:hover{border-color:rgba(245,166,35,0.32)}
+.proj-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.proj-title{font-family:var(--font-display);font-size:20px;font-weight:600;letter-spacing:-0.01em}
+.proj-sub{font-size:12px;color:var(--text-muted);font-family:var(--font-mono)}
+.proj-avatars{display:flex;align-items:center;gap:14px;margin:16px 0 6px;flex-wrap:wrap}
+.av-person{display:inline-flex;align-items:center;gap:7px}
+.av-circle{width:26px;height:26px;border-radius:99px;display:grid;place-items:center;font-size:11px;font-weight:700;color:#0B0A09;font-family:var(--font-display)}
+.av-person span{font-size:12.5px;color:var(--text-secondary)}
+.proj-tasks{margin-top:14px;display:flex;flex-direction:column;gap:2px}
+.ptask{display:flex;align-items:center;gap:11px;padding:9px 12px;border-radius:10px;font-size:13.5px;transition:background .25s var(--ease)}
+.ptask:hover{background:var(--bg-overlay)}
+.ptask .pwho{font-weight:600;color:var(--text-primary);min-width:54px}
+.ptask .pstate{font-family:var(--font-mono);font-size:10px;text-transform:uppercase;letter-spacing:0.06em;border:1px solid var(--comb-line);border-radius:99px;padding:2px 8px;display:inline-flex;align-items:center;gap:5px}
+.ptask .pmsg{color:var(--text-secondary);flex:1}
+.proj-foot{margin-top:16px;padding-top:14px;border-top:1px solid rgba(245,166,35,0.09);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;font-family:var(--font-mono);font-size:12px;color:var(--text-muted)}
+.proj-foot .stat-num{color:var(--honey-400);font-weight:600}
+
+/* 右側面板 */
+.side{position:sticky;top:66px;height:calc(100vh - 66px);border-left:1px solid var(--comb-line);background:rgba(19,17,14,0.4);display:flex;flex-direction:column}
+@media(max-width:1080px){.side{position:static;height:auto;border-left:none;border-top:1px solid var(--comb-line)}}
+.side-head{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--comb-line);font-family:var(--font-mono);font-size:12px;color:var(--text-muted)}
+.side-log{flex:1;overflow-y:auto;padding:6px 0;max-height:calc(100vh - 120px)}
+@media(max-width:1080px){.side-log{max-height:420px}}
+.log-row{padding:9px 20px;font-family:var(--font-mono);font-size:12px;line-height:1.6;border-bottom:1px solid rgba(245,166,35,0.06);animation:rowIn .5s var(--ease) both;display:flex;gap:9px;align-items:flex-start}
+.log-row .lt{color:var(--text-muted);flex-shrink:0}
+.log-row .lc{flex:1}
+.log-row .lwho{color:var(--honey-400);font-weight:600}
+.log-row .lact{color:var(--text-secondary)}
+
+.hidden{display:none!important}
+
+@media(max-width:640px){
+  .stat-grid{grid-template-columns:1fr;gap:12px}
+  .summary-bar{display:none}
+  .dash-top{grid-template-columns:auto auto;height:60px;padding:0 16px;gap:10px}
+  .last-update{display:none}
+  .public-nav{padding:0 16px}
+  .public-wrap{padding:0 16px}
+  .dash-main{padding:20px 16px 60px}
+  .emp-grid{grid-template-columns:1fr}
+  .brand span.full{display:none}
+}
+</style>
+</head>
+<body>
+<div class="hex-field" aria-hidden="true"></div>
+
+<!-- ============================================================
+     畫面 1：公開版 /activity
+     ============================================================ -->
+<div id="screen-public" class="screen active">
+  <nav class="public-nav">
+    <div class="brand">
+      <span class="brand-mark">A</span>
+      <span>Apis Hive<span class="full"> · 即時動態</span></span>
+    </div>
+    <button class="btn-amber" id="enterConsoleBtn">
+      進入控制台
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+    </button>
+  </nav>
+
+  <div class="public-hero">
+    <div class="hero-glow"></div>
+    <div class="public-wrap" style="padding-top:72px;padding-bottom:36px;position:relative">
+      <p class="eyebrow">Live Activity</p>
+      <h1>不是宣稱，是證據。</h1>
+      <p class="lead">這是蜂巢的即時營運流。每一行都是某個自主 AI 員工剛剛完成的任務 — 即時、未經修飾、持續滾動。你看到的不是行銷話術，而是一座 AI-native 公司正在運轉的證據。</p>
+    </div>
+  </div>
+
+  <div class="public-wrap" style="padding-bottom:80px;position:relative">
+    <div class="stat-grid">
+      <div class="stat-card">
+        <p class="stat-label">今日已處理</p>
+        <p class="stat-value tnum"><span id="pubCount">1,861</span></p>
+        <p class="stat-hint">任務數即時累計</p>
+      </div>
+      <div class="stat-card">
+        <p class="stat-label">活躍員工</p>
+        <p class="stat-value">6</p>
+        <p class="stat-hint">正在跑任務的 AI 員工</p>
+      </div>
+      <div class="stat-card">
+        <p class="stat-label">平均回應時間</p>
+        <p class="stat-value">1.4 <span style="font-size:15px;color:var(--text-secondary);font-family:var(--font-sans)">秒</span></p>
+        <p class="stat-hint">近一小時任務啟動延遲</p>
+      </div>
+    </div>
+
+    <div class="stream-shell">
+      <div class="stream-head">
+        <span>hive://activity-stream</span>
+        <span class="stream-live"><span class="dot dot-active breathe"></span>串流中</span>
+      </div>
+      <div class="stream-body" id="pubStream"></div>
+      <div class="stream-head" style="border-top:1px solid rgba(245,166,35,0.1);border-bottom:none">
+        <span>今日已處理 <span class="tnum" style="color:var(--honey-400)" id="pubCount2">1,861</span> 筆任務</span>
+        <span>6 位員工在線</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     畫面 2：登入 Modal
+     ============================================================ -->
+<div id="loginOverlay" class="overlay" role="dialog" aria-modal="true" aria-labelledby="loginTitle">
+  <div class="login-card">
+    <button class="login-close" id="loginClose" aria-label="關閉">&times;</button>
+    <div class="login-mark">A</div>
+    <h2 id="loginTitle" class="display">進入 Hive 控制台</h2>
+    <p class="sub">這座蜂巢的內部營運面板。輸入存取憑證以查看員工與專案的即時狀態。</p>
+    <form id="loginForm">
+      <div class="field">
+        <label for="tokenInput">存取憑證 Access Token</label>
+        <input id="tokenInput" type="password" placeholder="••••••••••••••••" autocomplete="off" />
+      </div>
+      <button type="submit" class="login-submit">登入</button>
+    </form>
+    <p class="login-foot">需要存取權限？<a href="#" onclick="return false">聯繫管理員</a></p>
+  </div>
+</div>
+
+<!-- ============================================================
+     畫面 3：Dashboard
+     ============================================================ -->
+<div id="screen-dash" class="screen">
+  <div class="dash">
+    <header class="dash-top">
+      <div class="brand">
+        <span class="brand-mark">A</span>
+        <span>Apis Hive<span class="full"> · Dashboard</span></span>
+      </div>
+      <div class="summary-bar">
+        <span class="seg"><span class="dot dot-active breathe"></span>6 Active</span>
+        <span class="div"></span>
+        <span class="seg"><span class="dot dot-idle"></span>2 Idle</span>
+        <span class="div"></span>
+        <span class="seg"><span class="dot dot-incubating"></span>5 Incubating</span>
+      </div>
+      <div class="dash-top-right">
+        <span class="last-update">最後更新 <span id="lastUpdate" class="tnum">剛剛</span></span>
+        <button class="btn-logout" id="logoutBtn">登出</button>
+      </div>
+    </header>
+
+    <div class="dash-body">
+      <main class="dash-main">
+        <div class="tabs" id="tabs">
+          <div class="tab-indicator" id="tabIndicator"></div>
+          <button class="tab active" data-pane="emp">員工總覽</button>
+          <button class="tab" data-pane="proj">專案視角</button>
+        </div>
+
+        <!-- Tab 1：員工總覽 -->
+        <section class="pane active" id="pane-emp">
+          <div class="emp-grid" id="empGrid"></div>
+        </section>
+
+        <!-- Tab 2：專案視角 -->
+        <section class="pane" id="pane-proj">
+          <div class="proj-list" id="projList"></div>
+        </section>
+      </main>
+
+      <!-- 右側即時 log -->
+      <aside class="side">
+        <div class="side-head">
+          <span>即時活動 LOG</span>
+          <span class="stream-live"><span class="dot dot-active breathe"></span>LIVE</span>
+        </div>
+        <div class="side-log" id="sideLog"></div>
+      </aside>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   資料
+   ============================================================ */
+const AV_COLORS = {
+  Meli:'linear-gradient(135deg,#FFD89B,#F5A623)',
+  Steve:'linear-gradient(135deg,#FFC56B,#D98818)',
+  Cora:'linear-gradient(135deg,#FFD89B,#FFC56B)',
+  Apple:'linear-gradient(135deg,#8A847A,#6B655C)',
+  Iris:'linear-gradient(135deg,#FFC56B,#F5A623)',
+  Penny:'linear-gradient(135deg,#FFD89B,#D98818)',
+};
+
+const STATUS_LABEL = {active:'ACTIVE',working:'WORKING',idle:'IDLE',blocked:'BLOCKED'};
+
+const EMPLOYEES = [
+  {name:'Meli',role:'COO',status:'active',tasks:['審核本週營運摘要','追蹤 K1 交付進度'],chips:['LED-Startup','Hive'],time:'2 分鐘前'},
+  {name:'Steve',role:'Frontend',status:'working',tasks:['修復產品頁響應式斷點','實作 Hero 動畫'],chips:['LED-Startup','Hive'],time:'剛剛'},
+  {name:'Cora',role:'PM',status:'active',tasks:['撰寫 OmniSense PRD v2','拆解 Q3 需求'],chips:['OmniSense'],time:'5 分鐘前'},
+  {name:'Apple',role:'SRE',status:'idle',tasks:['上次：API 延遲監控已完成'],chips:['Platform'],time:'15 分鐘前'},
+  {name:'Iris',role:'Sales',status:'working',tasks:['跟進展會客戶名單','整理報價單'],chips:['LED-Startup'],time:'3 分鐘前'},
+  {name:'Penny',role:'CS',status:'active',tasks:['回覆客訴 #4821','更新 FAQ 知識庫'],chips:['LED-Startup'],time:'8 分鐘前'},
+];
+
+const PROJECTS = [
+  {name:'LED-Startup',people:['Meli','Iris','Penny','Steve'],
+   tasks:[
+     {who:'Iris',state:'working',msg:'跟進展會客戶名單'},
+     {who:'Penny',state:'active',msg:'回覆客訴 #4821'},
+     {who:'Meli',state:'active',msg:'審核本週營運摘要'},
+   ],today:12,week:89,last:'1 分鐘前'},
+  {name:'OmniSense',people:['Cora','Steve'],
+   tasks:[
+     {who:'Cora',state:'active',msg:'撰寫 PRD v2'},
+     {who:'Steve',state:'blocked',msg:'等待設計稿'},
+   ],today:5,week:34,last:'5 分鐘前'},
+  {name:'Hive',people:['Steve','Meli'],sub:'官網專案',
+   tasks:[
+     {who:'Steve',state:'working',msg:'實作 Hero 動畫'},
+     {who:'Meli',state:'active',msg:'規劃 Dashboard'},
+   ],today:8,week:52,last:'剛剛'},
+];
+
+/* ============================================================
+   即時活動流產生器
+   ============================================================ */
+const ACTORS = [
+  {name:'Meli',abbr:'COO'},{name:'Steve',abbr:'FE'},{name:'Cora',abbr:'PM'},
+  {name:'Apple',abbr:'SRE'},{name:'Iris',abbr:'SALES'},{name:'Penny',abbr:'CS'},
+];
+const ACTIONS = [
+  {bar:'var(--status-live)',msg:'完成本週營運摘要審核，已歸檔至 K1 報告',tag:'營運'},
+  {bar:'var(--status-working)',msg:'修復產品頁 768px 斷點下的 Hero 跳版',tag:'開發'},
+  {bar:'var(--status-beta)',msg:'產出 OmniSense PRD v2 第 3 章草稿',tag:'產品'},
+  {bar:'var(--status-live)',msg:'回覆客訴 #4821，更新 FAQ 知識庫條目',tag:'客服'},
+  {bar:'var(--status-working)',msg:'跟進展會客戶名單，新增 7 筆高意向線索',tag:'業務'},
+  {bar:'var(--status-beta)',msg:'整理報價單 Q3-0612，等待主管覆核',tag:'業務'},
+  {bar:'var(--status-live)',msg:'API 延遲監控通過，p95 < 180ms',tag:'維運'},
+  {bar:'var(--status-working)',msg:'實作 Dashboard tab 切換 sliding indicator',tag:'開發'},
+  {bar:'var(--status-live)',msg:'拆解 Q3 需求為 14 張可執行卡片',tag:'產品'},
+  {bar:'var(--status-beta)',msg:'同步官網 /activity 文案至最新版本',tag:'內容'},
+];
+function pad(n){return n<10?'0'+n:''+n}
+function nowTime(){const d=new Date();return pad(d.getHours())+':'+pad(d.getMinutes())+':'+pad(d.getSeconds())}
+let seq=0;
+function makeEntry(){
+  const a=ACTORS[Math.floor(Math.random()*ACTORS.length)];
+  const act=ACTIONS[Math.floor(Math.random()*ACTIONS.length)];
+  return {id:++seq,time:nowTime(),name:a.name,abbr:a.abbr,bar:act.bar,msg:act.msg,tag:act.tag};
+}
+
+/* ---- 公開版 stream ---- */
+const pubStream=document.getElementById('pubStream');
+function renderPubRow(e){
+  const div=document.createElement('div');
+  div.className='row';
+  div.style.setProperty('--bar',e.bar);
+  div.innerHTML=`<span class="t">${e.time}</span>
+    <span class="dot" style="background:${e.bar};margin-top:5px"></span>
+    <span class="m"><span class="who">[${e.name}·${e.abbr}]</span> ${e.msg}<span class="tag">${e.tag}</span></span>`;
+  return div;
+}
+function seedPub(){
+  for(let i=0;i<9;i++){pubStream.appendChild(renderPubRow(makeEntry()));}
+}
+let pubCount=1861;
+function tickPub(){
+  const e=makeEntry();
+  pubStream.insertBefore(renderPubRow(e),pubStream.firstChild);
+  while(pubStream.children.length>11)pubStream.removeChild(pubStream.lastChild);
+  pubCount++;
+  document.getElementById('pubCount').textContent=pubCount.toLocaleString('en-US');
+  document.getElementById('pubCount2').textContent=pubCount.toLocaleString('en-US');
+}
+seedPub();
+let pubTimer=setInterval(tickPub,2600);
+
+/* ============================================================
+   畫面切換
+   ============================================================ */
+const screenPublic=document.getElementById('screen-public');
+const screenDash=document.getElementById('screen-dash');
+const overlay=document.getElementById('loginOverlay');
+
+function openLogin(){overlay.classList.add('show');setTimeout(()=>document.getElementById('tokenInput').focus(),300);}
+function closeLogin(){overlay.classList.remove('show');}
+
+document.getElementById('enterConsoleBtn').addEventListener('click',openLogin);
+document.getElementById('loginClose').addEventListener('click',closeLogin);
+overlay.addEventListener('click',e=>{if(e.target===overlay)closeLogin();});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&overlay.classList.contains('show'))closeLogin();});
+
+document.getElementById('loginForm').addEventListener('submit',e=>{
+  e.preventDefault();
+  closeLogin();
+  setTimeout(()=>{
+    screenPublic.classList.remove('active');
+    screenDash.classList.add('active');
+    window.scrollTo(0,0);
+    initDash();
+  },280);
+});
+
+document.getElementById('logoutBtn').addEventListener('click',()=>{
+  screenDash.classList.remove('active');
+  screenPublic.classList.add('active');
+  document.getElementById('tokenInput').value='';
+  window.scrollTo(0,0);
+  stopDash();
+});
+
+/* ============================================================
+   Dashboard 渲染
+   ============================================================ */
+let dashInited=false;
+function initDash(){
+  if(!dashInited){renderEmployees();renderProjects();seedSideLog();dashInited=true;}
+  positionIndicator(document.querySelector('.tab.active'));
+  startSideLog();
+}
+
+function renderEmployees(){
+  const grid=document.getElementById('empGrid');
+  grid.innerHTML=EMPLOYEES.map(e=>{
+    const isIdle=e.status==='idle';
+    const tasks=e.tasks.map((t,i)=>`<div class="task-item${isIdle?' idle':''}"><span class="pri"></span><span>${t}</span></div>`).join('');
+    return `<div class="emp-card" data-tilt>
+      <div class="emp-head">
+        <div class="emp-avatar" style="background:${AV_COLORS[e.name]}">${e.name[0]}</div>
+        <div>
+          <div class="emp-name"><span class="dot dot-${e.status}${e.status!=='idle'?' breathe':''}"></span>${e.name}</div>
+          <div class="emp-role">${e.role}</div>
+        </div>
+        <span class="emp-status-pill"><span class="dot dot-${e.status}"></span>${STATUS_LABEL[e.status]}</span>
+      </div>
+      <div class="task-block">
+        <div class="tb-label">${isIdle?'最近活動':'當前任務'}</div>
+        ${tasks}
+      </div>
+      <div class="emp-foot">
+        <div class="chips">${e.chips.map(c=>`<span class="chip">${c}</span>`).join('')}</div>
+        <span class="emp-time">${e.time}</span>
+      </div>
+    </div>`;
+  }).join('');
+  attachTilt();
+}
+
+function renderProjects(){
+  const list=document.getElementById('projList');
+  list.innerHTML=PROJECTS.map(p=>{
+    const avs=p.people.map(n=>`<span class="av-person"><span class="av-circle" style="background:${AV_COLORS[n]}">${n[0]}</span><span>${n}</span></span>`).join('');
+    const tasks=p.tasks.map(t=>`<div class="ptask">
+        <span class="pwho">${t.who}</span>
+        <span class="pstate"><span class="dot dot-${t.state}"></span>${STATUS_LABEL[t.state]}</span>
+        <span class="pmsg">${t.msg}</span>
+      </div>`).join('');
+    return `<div class="proj-card">
+      <div class="proj-head">
+        <span class="proj-title">${p.name}</span>
+        ${p.sub?`<span class="proj-sub">${p.sub}</span>`:''}
+      </div>
+      <div class="proj-avatars">${avs}</div>
+      <div class="proj-tasks">${tasks}</div>
+      <div class="proj-foot">
+        <span>今日 <span class="stat-num">${p.today}</span> 筆 · 本週 <span class="stat-num">${p.week}</span> 筆</span>
+        <span>最後活動 ${p.last}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+/* ---- Tab 切換 + sliding indicator ---- */
+const tabs=document.querySelectorAll('.tab');
+const indicator=document.getElementById('tabIndicator');
+function positionIndicator(el){
+  if(!el)return;
+  indicator.style.width=el.offsetWidth+'px';
+  indicator.style.transform=`translateX(${el.offsetLeft-5}px)`;
+}
+tabs.forEach(tab=>{
+  tab.addEventListener('click',()=>{
+    tabs.forEach(t=>t.classList.remove('active'));
+    tab.classList.add('active');
+    positionIndicator(tab);
+    document.querySelectorAll('.pane').forEach(p=>p.classList.remove('active'));
+    document.getElementById('pane-'+tab.dataset.pane).classList.add('active');
+  });
+});
+window.addEventListener('resize',()=>{
+  if(screenDash.classList.contains('active'))positionIndicator(document.querySelector('.tab.active'));
+});
+
+/* ---- 卡片 tilt + 跟隨游標光斑 ---- */
+function attachTilt(){
+  document.querySelectorAll('[data-tilt]').forEach(card=>{
+    card.addEventListener('mousemove',e=>{
+      const r=card.getBoundingClientRect();
+      const px=(e.clientX-r.left)/r.width, py=(e.clientY-r.top)/r.height;
+      const rx=(0.5-py)*7, ry=(px-0.5)*7;
+      card.style.transform=`perspective(900px) rotateX(${rx}deg) rotateY(${ry}deg)`;
+      card.style.setProperty('--glow',`radial-gradient(circle at ${px*100}% ${py*100}%,rgba(245,166,35,0.16),transparent 60%)`);
+    });
+    card.addEventListener('mouseleave',()=>{card.style.transform='';});
+  });
+}
+
+/* ---- 右側即時 log ---- */
+const sideLog=document.getElementById('sideLog');
+function renderLogRow(e){
+  const div=document.createElement('div');
+  div.className='log-row';
+  div.innerHTML=`<span class="lt">${e.time}</span><span class="lc"><span class="lwho">${e.name}</span> <span class="lact">${e.msg}</span></span>`;
+  return div;
+}
+function seedSideLog(){
+  for(let i=0;i<10;i++)sideLog.appendChild(renderLogRow(makeEntry()));
+}
+let sideTimer=null;
+function startSideLog(){
+  if(sideTimer)return;
+  sideTimer=setInterval(()=>{
+    sideLog.insertBefore(renderLogRow(makeEntry()),sideLog.firstChild);
+    while(sideLog.children.length>22)sideLog.removeChild(sideLog.lastChild);
+    document.getElementById('lastUpdate').textContent='剛剛';
+  },2200);
+}
+function stopDash(){if(sideTimer){clearInterval(sideTimer);sideTimer=null;}}
+</script>
+</body>
+</html>
