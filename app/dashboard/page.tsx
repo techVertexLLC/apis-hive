@@ -102,6 +102,17 @@ type HiveProjectCost = {
   source: string
 }
 
+// 追蹤方式：agent=員工操作開發、human=CTO 人工開發
+type ProjTrack = 'agent' | 'human'
+
+// 近期 GitHub commit（短 7 碼 sha + 訊息 + 作者 + 日期 YYYY-MM-DD），可能空
+type HiveCommit = {
+  sha: string
+  msg: string
+  author: string
+  date: string
+}
+
 type HiveProjectBusiness = {
   key: string
   name: string
@@ -110,6 +121,9 @@ type HiveProjectBusiness = {
   lead?: string | null
   telegram?: string | null
   desc?: string | null
+  repo?: string | null // GitHub repo，如 "techVertexLLC/OmniSense"
+  track?: ProjTrack | null
+  recentCommits?: HiveCommit[]
   assigned: number
   done: number
   open: number
@@ -617,6 +631,50 @@ function ProjectStatusBadge({ status }: { status?: string | null }) {
     </span>
   )
 }
+
+/* 追蹤方式 badge —— human=「CTO 人工」(藍/灰)、agent=「Agent 操作」(琥珀)。
+   讓使用者一眼知道這專案是人開發還是 agent 開發。 */
+const TRACK_LABEL: Record<ProjTrack, string> = {
+  human: 'CTO 人工',
+  agent: 'Agent 操作',
+}
+function TrackBadge({ track }: { track?: ProjTrack | null }) {
+  if (track !== 'human' && track !== 'agent') return null
+  return (
+    <span className={`track-badge track-${track}`} title={track === 'human' ? 'CTO 人工開發（進度來自 GitHub）' : 'Agent 操作開發'}>
+      <span className="track-badge-dot" />
+      {TRACK_LABEL[track]}
+    </span>
+  )
+}
+
+/* 近期 GitHub commits 區（詳情用）：列 date + msg + 短 sha（JetBrains Mono）；
+   有 repo 顯示 repo 名；空則「尚無 commit 紀錄」。
+   對 track=human 的專案（如 OmniSense，0 派工但有 commit）特別重要 —— 進度來自 GitHub。 */
+function GithubCommits({ repo, commits }: { repo?: string | null; commits?: HiveCommit[] }) {
+  const list = commits ?? []
+  return (
+    <div className="detail-section">
+      <div className="detail-sec-title">
+        近期 GitHub
+        {repo && <span className="gh-repo mono">{repo}</span>}
+      </div>
+      {list.length ? (
+        <div className="gh-commits">
+          {list.map((c) => (
+            <div key={c.sha} className="gh-commit">
+              <span className="gh-commit-date mono">{c.date}</span>
+              <span className="gh-commit-msg">{c.msg}</span>
+              <span className="gh-commit-sha mono">{c.sha}</span>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="board-empty">尚無 commit 紀錄</div>
+      )}
+    </div>
+  )
+}
 // incubating 視為籌備中：無任何派工時，呈現刻意的籌備 empty state（而非壞卡）
 function isIncubatingEmpty(p: HiveProjectBusiness): boolean {
   return projStatusKind(p.status) === 'incubating' && p.assigned === 0
@@ -685,6 +743,7 @@ function BusinessProjectCard({ p, onOpen }: { p: HiveProjectBusiness; onOpen: ()
       <div className="proj-head">
         <span className="proj-title">{p.name}</span>
         <ProjectStatusBadge status={p.status} />
+        <TrackBadge track={p.track} />
         {p.lead && <span className="proj-lead-chip">負責人 {p.lead}</span>}
         <span className="proj-enter">看詳情 →</span>
       </div>
@@ -731,6 +790,8 @@ function BusinessProjectDetail({ p, onBack }: { p: HiveProjectBusiness; onBack: 
   const openTasks = tasks.filter((t) => t.status === 'open')
   const pct = p.assigned > 0 ? Math.round((p.done / p.assigned) * 100) : 0
   const incubatingEmpty = isIncubatingEmpty(p)
+  // track=human：進度來自 GitHub（非派工）。淡化派工/待辦區，以 GitHub commits 為主要進度。
+  const humanTrack = p.track === 'human'
 
   return (
     <div className="proj-detail active">
@@ -742,6 +803,7 @@ function BusinessProjectDetail({ p, onBack }: { p: HiveProjectBusiness; onBack: 
           <h2 className="detail-title">{p.name}</h2>
           <div className="detail-badges">
             <ProjectStatusBadge status={p.status} />
+            <TrackBadge track={p.track} />
             <span className="detail-badge">事業專案</span>
             {p.lead && <span className="detail-badge">負責人 {p.lead}</span>}
             {p.telegram && <span className="detail-badge ok">專案群 已連線</span>}
@@ -813,6 +875,17 @@ function BusinessProjectDetail({ p, onBack }: { p: HiveProjectBusiness; onBack: 
         </div>
       </div>
 
+      {/* track=human：GitHub commits 為主要進度，置於派工區之前 */}
+      {humanTrack && <GithubCommits repo={p.repo} commits={p.recentCommits} />}
+
+      {/* 派工/待辦區：human track 沒派工很正常 → 整區淡化、加說明 */}
+      <div className={humanTrack ? 'detail-tasks-muted' : undefined}>
+        {humanTrack && (
+          <div className="track-human-note">
+            此專案為 CTO 人工開發，進度以上方 GitHub commits 為準；通常沒有 agent 派工。
+          </div>
+        )}
+
       {/* 待辦 */}
       <div className="detail-section">
         <div className="detail-sec-title">待辦</div>
@@ -881,6 +954,10 @@ function BusinessProjectDetail({ p, onBack }: { p: HiveProjectBusiness; onBack: 
           <div className="board-empty">尚無派工</div>
         )}
       </div>
+      </div>
+
+      {/* track=agent（或未標）：GitHub commits 置於派工區之後 */}
+      {!humanTrack && <GithubCommits repo={p.repo} commits={p.recentCommits} />}
     </div>
   )
 }
