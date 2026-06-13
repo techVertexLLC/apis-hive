@@ -2,7 +2,6 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { Reveal } from '@/components/ui/Reveal'
 import { ActivityStream } from '@/components/activity/ActivityStream'
-import { ProjectStats } from '@/components/activity/ProjectStats'
 
 export const metadata: Metadata = {
   title: '即時動態',
@@ -52,8 +51,6 @@ export default function ActivityPage() {
         </div>
       </section>
 
-      {/* 算力帳本（真實 token/成本） */}
-      <ProjectStats />
 
       {/* 統計 + 篩選 + 串流 */}
       <section className="pb-28">
