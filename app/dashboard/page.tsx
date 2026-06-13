@@ -46,6 +46,10 @@ type HiveEmployee = {
   rosterStatus: string
 }
 
+type HiveLesson = { id: string; status: string; trigger: string; action: string }
+type HiveDecision = { topic: string; decision: string; ts: string }
+type HiveRetro = { agent: string; well: string; ts: string }
+
 type HiveProjectMeta = {
   key: 'hive'
   name: string
@@ -61,6 +65,14 @@ type HiveProjectMeta = {
     retros: number
     tasksDispatched: number
     tasksDone: number
+    costUsd?: number
+    costTwd?: number
+    costTokens?: number
+  }
+  detail?: {
+    lessons: HiveLesson[]
+    decisions: HiveDecision[]
+    retros: HiveRetro[]
   }
 }
 
@@ -71,6 +83,22 @@ type HiveProjectRecent = {
   ts: string
 }
 
+type HiveTask = {
+  dc: string
+  status: 'open' | 'done'
+  executor: string
+  note: string
+  doneNote?: string
+  ts: string
+}
+
+type HiveProjectCost = {
+  usd: number
+  twd: number
+  tokens: number
+  source: string
+}
+
 type HiveProjectBusiness = {
   key: string
   name: string
@@ -78,6 +106,9 @@ type HiveProjectBusiness = {
   assigned: number
   done: number
   open: number
+  members?: string[]
+  cost?: HiveProjectCost
+  tasks?: HiveTask[]
   recent: HiveProjectRecent[]
 }
 
@@ -558,7 +589,7 @@ function fmtRecentTime(ts: string): string {
   return `${pad(d.getMonth() + 1)}/${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`
 }
 
-function HiveHero({ p }: { p: HiveProjectMeta }) {
+function HiveHero({ p, onOpen }: { p: HiveProjectMeta; onOpen: () => void }) {
   const m = p.metrics
   const stats: { label: string; val: number }[] = [
     { label: '員工數', val: m.employees },
@@ -571,7 +602,18 @@ function HiveHero({ p }: { p: HiveProjectMeta }) {
     { label: '完成', val: m.tasksDone },
   ]
   return (
-    <div className="hive-hero">
+    <div
+      className="hive-hero hive-hero-clickable"
+      role="button"
+      tabIndex={0}
+      onClick={onOpen}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault()
+          onOpen()
+        }
+      }}
+    >
       <div className="hive-hero-head">
         <span className="hive-hero-kicker">公司本體 · 自我優化</span>
         <h2 className="hive-hero-title display">{p.name}</h2>
@@ -586,16 +628,29 @@ function HiveHero({ p }: { p: HiveProjectMeta }) {
           </div>
         ))}
       </div>
+      <span className="proj-enter">看自我進化明細 →</span>
     </div>
   )
 }
 
-function BusinessProjectCard({ p }: { p: HiveProjectBusiness }) {
+function BusinessProjectCard({ p, onOpen }: { p: HiveProjectBusiness; onOpen: () => void }) {
   const recent = p.recent.slice(0, 5)
   return (
-    <div className="proj-card biz-card">
+    <div
+      className="proj-card biz-card biz-card-clickable"
+      role="button"
+      tabIndex={0}
+      onClick={onOpen}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault()
+          onOpen()
+        }
+      }}
+    >
       <div className="proj-head">
         <span className="proj-title">{p.name}</span>
+        <span className="proj-enter">看詳情 →</span>
       </div>
       <div className="biz-stats">
         <div className="biz-stat">
@@ -629,7 +684,273 @@ function BusinessProjectCard({ p }: { p: HiveProjectBusiness }) {
   )
 }
 
+/* ---------- 事業專案詳情 ---------- */
+function BusinessProjectDetail({ p, onBack }: { p: HiveProjectBusiness; onBack: () => void }) {
+  const members = p.members ?? []
+  const tasks = p.tasks ?? []
+  const cost = p.cost
+  const openTasks = tasks.filter((t) => t.status === 'open')
+  const pct = p.assigned > 0 ? Math.round((p.done / p.assigned) * 100) : 0
+
+  return (
+    <div className="proj-detail active">
+      <button className="detail-back" onClick={onBack}>
+        ← 返回專案列表
+      </button>
+      <div className="detail-head">
+        <div>
+          <h2 className="detail-title">{p.name}</h2>
+          <div className="detail-badges">
+            <span className="detail-badge">事業專案</span>
+            {p.open > 0 ? (
+              <span className="detail-badge">{p.open} 進行中</span>
+            ) : (
+              <span className="detail-badge ok">全部完成</span>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* 進度 + 成本 + 成員 */}
+      <div className="detail-stats">
+        <div className="dstat">
+          <div className="dstat-label">進度</div>
+          <div className="dstat-row">
+            <div className="ring" style={{ ['--pct' as string]: pct }}>
+              <span className="ring-num">{pct}%</span>
+            </div>
+            <div>
+              <div className="dstat-sub">
+                完成 <strong className="num">{p.done}</strong> / 派工 <strong className="num">{p.assigned}</strong>
+              </div>
+              <div className="dstat-sub">
+                待辦 <strong className="num">{p.open}</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="dstat">
+          <div className="dstat-label">成本</div>
+          <div className="dstat-big num">{cost ? fmtUsd(cost.usd) : '—'}</div>
+          <div className="dstat-sub num">{cost ? fmtTwd(cost.twd) : '—'}</div>
+          <div className="dstat-sub num">{cost ? `${fmtInt(cost.tokens)} tokens` : '—'}</div>
+          {cost?.source && <div className="cost-source-tag">{cost.source}</div>}
+        </div>
+
+        <div className="dstat">
+          <div className="dstat-label">成員</div>
+          <div className="chips" style={{ marginTop: 4 }}>
+            {members.length ? (
+              members.map((m) => (
+                <span key={m} className="chip">
+                  {m}
+                </span>
+              ))
+            ) : (
+              <span className="chip chip-muted">未指派成員</span>
+            )}
+          </div>
+        </div>
+
+        <div className="dstat">
+          <div className="dstat-label">總覽</div>
+          <div className="dstat-sub">
+            進行中 <strong className="num">{p.open}</strong>
+          </div>
+          <div className="dstat-sub">
+            已完成 <strong className="num">{p.done}</strong>
+          </div>
+          <div className="dstat-sub">
+            總派工 <strong className="num">{p.assigned}</strong>
+          </div>
+        </div>
+      </div>
+
+      {/* 待辦 */}
+      <div className="detail-section">
+        <div className="detail-sec-title">待辦</div>
+        {openTasks.length ? (
+          <div className="board-cards">
+            {openTasks.map((t) => (
+              <div key={t.dc} className="tcard" style={{ ['--pc' as string]: 'var(--honey-500)' }}>
+                <div className="tcard-who">
+                  {t.executor || '未指派'}
+                  <span className="ptask-state-pill open">進行中</span>
+                </div>
+                <div className="tcard-msg">{t.note}</div>
+                <div className="tcard-time">
+                  {t.dc} · {fmtRecentTime(t.ts)}
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="board-empty">目前無待辦</div>
+        )}
+      </div>
+
+      {/* 派工清單 */}
+      <div className="detail-section">
+        <div className="detail-sec-title">派工清單</div>
+        {tasks.length ? (
+          <div className="board-cards">
+            {tasks.map((t) => {
+              const done = t.status === 'done'
+              return (
+                <div
+                  key={t.dc}
+                  className="tcard"
+                  style={{ ['--pc' as string]: done ? 'var(--status-live)' : 'var(--honey-500)' }}
+                >
+                  <div className="tcard-who">
+                    {t.executor || '未指派'}
+                    <span className={`ptask-state-pill ${done ? 'done' : 'open'}`}>
+                      {done ? '已完成' : '進行中'}
+                    </span>
+                  </div>
+                  <div className="tcard-msg">{t.note}</div>
+                  {done && t.doneNote && <div className="tcard-donenote">↳ {t.doneNote}</div>}
+                  <div className="tcard-time">
+                    {t.dc} · {fmtRecentTime(t.ts)}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        ) : (
+          <div className="board-empty">尚無派工</div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+/* ---------- HIVE（公司自我進化）詳情 ---------- */
+function HiveDetail({ p, onBack }: { p: HiveProjectMeta; onBack: () => void }) {
+  const m = p.metrics
+  const lessons = p.detail?.lessons ?? []
+  const decisions = p.detail?.decisions ?? []
+  const retros = p.detail?.retros ?? []
+
+  return (
+    <div className="proj-detail active">
+      <button className="detail-back" onClick={onBack}>
+        ← 返回專案列表
+      </button>
+      <div className="detail-head">
+        <div>
+          <span className="hive-hero-kicker">公司本體 · 自我優化</span>
+          <h2 className="detail-title display">{p.name}</h2>
+          <p className="detail-desc">{p.note}</p>
+        </div>
+      </div>
+
+      {/* metrics */}
+      <div className="detail-stats">
+        <div className="dstat">
+          <div className="dstat-label">員工 / 在線</div>
+          <div className="dstat-big num">
+            {m.online}
+            <span className="dstat-of num"> / {m.employees}</span>
+          </div>
+          <div className="dstat-sub">活躍經驗 {m.lessonsActive} · 累積 {m.lessonsTotal}</div>
+        </div>
+        <div className="dstat">
+          <div className="dstat-label">派工 / 完成</div>
+          <div className="dstat-big num">{m.tasksDone}</div>
+          <div className="dstat-sub num">共派工 {m.tasksDispatched}</div>
+        </div>
+        <div className="dstat">
+          <div className="dstat-label">決策 / Retro</div>
+          <div className="dstat-big num">{m.decisions}</div>
+          <div className="dstat-sub num">Retro {m.retros} 次</div>
+        </div>
+        <div className="dstat">
+          <div className="dstat-label">累計成本</div>
+          <div className="dstat-big num">{fmtUsd(m.costUsd)}</div>
+          <div className="dstat-sub num">{fmtTwd(m.costTwd)}</div>
+          <div className="dstat-sub num">{fmtInt(m.costTokens)} tokens</div>
+        </div>
+      </div>
+
+      <div className="hive-evo-frame">
+        <div className="hive-evo-frame-title">公司自我進化紀錄</div>
+
+        {/* lessons */}
+        <div className="detail-section">
+          <div className="detail-sec-title">經驗 Lessons</div>
+          {lessons.length ? (
+            <div className="board-cards">
+              {lessons.map((l) => (
+                <div
+                  key={l.id}
+                  className="tcard"
+                  style={{ ['--pc' as string]: l.status === 'active' ? 'var(--honey-500)' : 'var(--status-idle)' }}
+                >
+                  <div className="tcard-who">
+                    {l.id}
+                    <span className={`ptask-state-pill ${l.status === 'active' ? 'open' : 'retired'}`}>
+                      {l.status}
+                    </span>
+                  </div>
+                  <div className="tcard-msg">
+                    <span className="evo-trigger">{l.trigger}</span>
+                    <span className="evo-arrow"> → </span>
+                    <span className="evo-action">{l.action}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="board-empty">尚未累積經驗</div>
+          )}
+        </div>
+
+        {/* decisions */}
+        <div className="detail-section">
+          <div className="detail-sec-title">決策 Decisions</div>
+          {decisions.length ? (
+            <div className="board-cards">
+              {decisions.map((d, i) => (
+                <div key={i} className="tcard" style={{ ['--pc' as string]: 'var(--status-beta)' }}>
+                  <div className="tcard-who">{d.topic}</div>
+                  <div className="tcard-msg">{d.decision}</div>
+                  <div className="tcard-time">{fmtRecentTime(d.ts)}</div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="board-empty">尚無決策紀錄</div>
+          )}
+        </div>
+
+        {/* retros */}
+        <div className="detail-section">
+          <div className="detail-sec-title">Retro 回顧</div>
+          {retros.length ? (
+            <div className="board-cards">
+              {retros.map((r, i) => (
+                <div key={i} className="tcard" style={{ ['--pc' as string]: 'var(--status-live)' }}>
+                  <div className="tcard-who">{r.agent}</div>
+                  <div className="tcard-msg">{r.well}</div>
+                  <div className="tcard-time">{fmtRecentTime(r.ts)}</div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="board-empty">尚無 Retro</div>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 function ProjectView({ data, error }: { data: HiveData | null; error: string | null }) {
+  // 選取的專案 key（'hive' 或 business project key）；null = 列表視圖
+  const [selectedKey, setSelectedKey] = useState<string | null>(null)
+
   if (!data) {
     return (
       <div className="cost-state">
@@ -639,13 +960,34 @@ function ProjectView({ data, error }: { data: HiveData | null; error: string | n
   }
   const hive = data.projects.find((p): p is HiveProjectMeta => p.kind === 'meta')
   const biz = data.projects.filter((p): p is HiveProjectBusiness => p.kind === 'business')
+
+  // 詳情視圖：每 15 秒輪詢時自動沿用最新的同一份 data
+  if (selectedKey) {
+    if (selectedKey === 'hive' && hive) {
+      return (
+        <div className="proj-view">
+          <HiveDetail p={hive} onBack={() => setSelectedKey(null)} />
+        </div>
+      )
+    }
+    const sel = biz.find((b) => b.key === selectedKey)
+    if (sel) {
+      return (
+        <div className="proj-view">
+          <BusinessProjectDetail p={sel} onBack={() => setSelectedKey(null)} />
+        </div>
+      )
+    }
+    // 選取的專案已不在資料中（極少見）→ 退回列表
+  }
+
   return (
     <div className="proj-view">
-      {hive && <HiveHero p={hive} />}
+      {hive && <HiveHero p={hive} onOpen={() => setSelectedKey('hive')} />}
       {biz.length > 0 && <div className="biz-section-title">事業專案</div>}
       <div className="proj-list">
         {biz.map((p) => (
-          <BusinessProjectCard key={p.key} p={p} />
+          <BusinessProjectCard key={p.key} p={p} onOpen={() => setSelectedKey(p.key)} />
         ))}
       </div>
     </div>

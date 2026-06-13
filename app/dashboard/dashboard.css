@@ -1564,3 +1564,107 @@
   color: var(--text-muted);
   white-space: nowrap;
 }
+
+/* ============================================================
+   專案視角 — 可點擊下鑽（嚴格附加，沿用暖黑+琥珀風格）
+   ============================================================ */
+/* HIVE HERO 與事業卡可點擊：游標、hover 抬升、進入提示 */
+.hive-dash-root .biz-card.biz-card-clickable { cursor: pointer; }
+.hive-dash-root .hive-hero-clickable { cursor: pointer; }
+.hive-dash-root .hive-hero-clickable:hover {
+  border-color: rgba(245, 166, 35, 0.5);
+  box-shadow: 0 0 0 1px rgba(245, 166, 35, 0.12), 0 22px 56px -24px rgba(0, 0, 0, 0.8);
+}
+.hive-dash-root .hive-hero-clickable .proj-enter {
+  position: relative;
+  margin-left: 0;
+  margin-top: 18px;
+}
+.hive-dash-root .hive-hero-clickable:hover .proj-enter,
+.hive-dash-root .hive-hero-clickable:focus-visible .proj-enter {
+  opacity: 1;
+  transform: translateX(0);
+  color: var(--honey-400);
+}
+.hive-dash-root .biz-card-clickable:focus-visible,
+.hive-dash-root .hive-hero-clickable:focus-visible {
+  outline: 2px solid rgba(245, 166, 35, 0.5);
+  outline-offset: 2px;
+}
+
+/* 成本來源標籤（cwd 粗估 / 派工帳本） */
+.hive-dash-root .cost-source-tag {
+  display: inline-block;
+  margin-top: 10px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  border: 1px solid var(--comb-line);
+  border-radius: 99px;
+  padding: 2px 9px;
+}
+
+/* 派工狀態 pill（open / done / lesson 狀態） */
+.hive-dash-root .ptask-state-pill {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  border: 1px solid var(--comb-line);
+  border-radius: 99px;
+  padding: 2px 8px;
+  margin-left: 8px;
+  font-weight: 600;
+}
+.hive-dash-root .ptask-state-pill.done {
+  color: var(--status-live);
+  border-color: rgba(74, 222, 128, 0.4);
+}
+.hive-dash-root .ptask-state-pill.open {
+  color: var(--honey-400);
+  border-color: rgba(245, 166, 35, 0.4);
+}
+.hive-dash-root .ptask-state-pill.retired {
+  color: var(--text-muted);
+  border-color: var(--comb-line);
+}
+
+/* done 任務的完成備註 */
+.hive-dash-root .tcard-donenote {
+  font-size: 12px;
+  color: var(--status-live);
+  margin-top: 7px;
+  line-height: 1.55;
+  border-left: 2px solid rgba(74, 222, 128, 0.3);
+  padding-left: 9px;
+}
+
+/* HIVE metrics 「在線 / 員工」的分母 */
+.hive-dash-root .dstat-of {
+  color: var(--text-muted);
+  font-size: 18px;
+  font-weight: 500;
+}
+
+/* HIVE 自我進化紀錄外框 */
+.hive-dash-root .hive-evo-frame {
+  margin-top: 30px;
+  border: 1px solid rgba(245, 166, 35, 0.22);
+  border-radius: 16px;
+  padding: 22px 24px 26px;
+  background:
+    radial-gradient(120% 140% at 0% 0%, rgba(245, 166, 35, 0.06), transparent 55%),
+    rgba(19, 17, 14, 0.4);
+}
+.hive-dash-root .hive-evo-frame-title {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--honey-300);
+}
+.hive-dash-root .hive-evo-frame .detail-section { margin-top: 22px; }
+.hive-dash-root .evo-trigger { color: var(--text-secondary); }
+.hive-dash-root .evo-arrow { color: var(--honey-400); font-weight: 600; }
+.hive-dash-root .evo-action { color: var(--text-primary); }
