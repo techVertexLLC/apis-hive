@@ -145,11 +145,13 @@ type HiveRepo = {
   openPRs: HivePR[]
 }
 
+type HiveActivity = { time: string; type: string; text: string }
 type HiveData = {
   generatedAt: string
   employees: HiveEmployee[]
   projects: HiveProject[]
   repos?: HiveRepo[]
+  activityFeed?: HiveActivity[]
 }
 
 const HIVE_STATUS_LABEL: Record<HiveStatus, string> = {
@@ -1260,16 +1262,20 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
     return () => window.removeEventListener('resize', h)
   }, [positionIndicator])
 
-  // 右側即時 LOG
+  // 右側即時 LOG（真實資料:派工/完成/commit，隨 hive 15s 輪詢更新）
   useEffect(() => {
-    const seed: LogEntry[] = []
-    for (let i = 0; i < 10; i++) seed.push(makeEntry())
-    setLog(seed)
-    const t = setInterval(() => {
-      setLog((prev) => [makeEntry(), ...prev].slice(0, 22))
-    }, 2200)
-    return () => clearInterval(t)
-  }, [])
+    const feed = hive?.activityFeed ?? []
+    setLog(
+      feed.map((a, i) => ({
+        id: i,
+        time: a.time
+          ? new Date(a.time).toLocaleTimeString("zh-TW", { hour: "2-digit", minute: "2-digit" })
+          : "",
+        name: a.type,
+        msg: a.text,
+      })),
+    )
+  }, [hive])
 
   const switchTab = (next: 'emp' | 'proj' | 'cost' | 'repo') => {
     setTab(next)
