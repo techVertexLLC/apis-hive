@@ -53,7 +53,7 @@ type HiveEmployee = {
   lastSeen: string
   rosterStatus: string
   // drill-down 欄位（來自 /api/hive-status）
-  execState?: string | null        // '待命' | '進行中' | '可能卡住' | '完成'
+  execState?: string | null        // '上線' | '下線' | '執行中' | '已派工' | '可能卡住'
   taskHistory?: HiveTaskHistoryItem[] | null
 }
 
@@ -562,10 +562,11 @@ function CostPane({ active }: { active: boolean }) {
    點擊員工卡開啟：execState 顏色狀態、currentTask、taskHistory
    ============================================================ */
 const EXEC_STATE_CLASS: Record<string, string> = {
-  '進行中': 'exec-state-working',
+  '執行中': 'exec-state-working',
+  '已派工': 'exec-state-dispatched',
   '可能卡住': 'exec-state-blocked',
-  '完成': 'exec-state-done',
-  '待命': 'exec-state-idle',
+  '上線': 'exec-state-online',
+  '下線': 'exec-state-offline',
 }
 
 function EmployeeModal({ emp, onClose }: { emp: HiveEmployee; onClose: () => void }) {
@@ -576,7 +577,7 @@ function EmployeeModal({ emp, onClose }: { emp: HiveEmployee; onClose: () => voi
     return () => document.removeEventListener('keydown', handler)
   }, [onClose])
 
-  const execStateClass = emp.execState ? (EXEC_STATE_CLASS[emp.execState] ?? 'exec-state-idle') : null
+  const execStateClass = emp.execState ? (EXEC_STATE_CLASS[emp.execState] ?? 'exec-state-online') : null
   const history = emp.taskHistory ?? []
 
   return (

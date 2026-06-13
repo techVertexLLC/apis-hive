@@ -2151,13 +2151,17 @@
   background: rgba(248, 113, 113, 0.15);
   color: #f87171;
 }
-.hive-dash-root .exec-state-done {
+.hive-dash-root .exec-state-online {
   background: rgba(74, 222, 128, 0.12);
   color: #4ade80;
 }
-.hive-dash-root .exec-state-idle {
+.hive-dash-root .exec-state-offline {
   background: rgba(107, 101, 92, 0.3);
   color: var(--text-muted);
+}
+.hive-dash-root .exec-state-dispatched {
+  background: rgba(96, 165, 250, 0.15);
+  color: #60a5fa;
 }
 @keyframes amber-pulse {
   0%, 100% { opacity: 1; }
