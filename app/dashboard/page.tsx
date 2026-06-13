@@ -1,12 +1,12 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, FormEvent } from 'react'
 import './dashboard.css'
 
 /* ============================================================
    Apis Hive — 內部私密財務 Dashboard
-   存取由 Caddy basicauth 於 server 端保護（無 client-side 密碼）。
-   資料來源：/metrics-full.json（含完整金額，Caddy 保護）
+   存取由頁內密碼閘門保護（cookie 式登入）。
+   資料來源：/api/metrics（檢查 dash_auth cookie 後回傳完整金額）
    ============================================================ */
 
 type Row = {
@@ -98,18 +98,83 @@ function MoneyBars({ rows }: { rows: Row[] }) {
   )
 }
 
+function LoginGate({
+  onSuccess,
+}: {
+  onSuccess: (m: Metrics) => void
+}) {
+  const [password, setPassword] = useState('')
+  const [error, setError] = useState(false)
+  const [busy, setBusy] = useState(false)
+
+  async function submit(e: FormEvent) {
+    e.preventDefault()
+    if (busy) return
+    setBusy(true)
+    setError(false)
+    try {
+      const r = await fetch('/api/dash-login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password }),
+      })
+      if (!r.ok) {
+        setError(true)
+        setBusy(false)
+        return
+      }
+      const mr = await fetch('/api/metrics', { cache: 'no-store' })
+      if (!mr.ok) {
+        setError(true)
+        setBusy(false)
+        return
+      }
+      const data = (await mr.json()) as Metrics
+      onSuccess(data)
+    } catch {
+      setError(true)
+      setBusy(false)
+    }
+  }
+
+  return (
+    <div className="fin-login-wrap">
+      <form className="fin-login-card" onSubmit={submit}>
+        <div className="fin-login-mark">A</div>
+        <div className="fin-login-title">內部 · 請輸入密碼</div>
+        <input
+          type="password"
+          className="fin-login-input mono"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          placeholder="密碼"
+          autoFocus
+          autoComplete="current-password"
+        />
+        <button type="submit" className="fin-login-btn" disabled={busy}>
+          {busy ? '驗證中…' : '登入'}
+        </button>
+        {error && <div className="fin-login-err">密碼錯誤</div>}
+      </form>
+    </div>
+  )
+}
+
 export default function DashboardPage() {
   const [m, setM] = useState<Metrics | null>(null)
-  const [state, setState] = useState<'loading' | 'ok' | 'err'>('loading')
+  const [state, setState] = useState<'loading' | 'ok' | 'locked'>('loading')
 
   useEffect(() => {
-    fetch('/metrics-full.json', { cache: 'no-store' })
-      .then((r) => (r.ok ? r.json() : Promise.reject()))
+    fetch('/api/metrics', { cache: 'no-store' })
+      .then((r) => {
+        if (r.ok) return r.json()
+        return Promise.reject()
+      })
       .then((d) => {
         setM(d)
         setState('ok')
       })
-      .catch(() => setState('err'))
+      .catch(() => setState('locked'))
   }, [])
 
   const when = m
@@ -127,147 +192,146 @@ export default function DashboardPage() {
     <main className="hive-dash-root">
       <div className="hex-field" aria-hidden="true" />
 
-      <div className="fin-wrap">
-        <header className="fin-top">
-          <div className="brand">
-            <span className="brand-mark">A</span>
-            <span>
-              Apis Hive<span className="full"> · 財務控制台</span>
-            </span>
-          </div>
-          <div className="fin-top-right">
-            <span className="fin-private mono">內部私密 · INTERNAL</span>
-            {state === 'ok' && (
+      {state === 'loading' && (
+        <div className="fin-wrap">
+          <div className="fin-note-block">載入財務資料中…</div>
+        </div>
+      )}
+
+      {state === 'locked' && (
+        <LoginGate
+          onSuccess={(data) => {
+            setM(data)
+            setState('ok')
+          }}
+        />
+      )}
+
+      {state === 'ok' && m && (
+        <div className="fin-wrap">
+          <header className="fin-top">
+            <div className="brand">
+              <span className="brand-mark">A</span>
+              <span>
+                Apis Hive<span className="full"> · 財務控制台</span>
+              </span>
+            </div>
+            <div className="fin-top-right">
+              <span className="fin-private mono">內部私密 · INTERNAL</span>
               <span className="last-update">
                 最後更新 <span className="tnum">{when}</span>
               </span>
-            )}
-          </div>
-        </header>
+            </div>
+          </header>
 
-        {state === 'loading' && (
-          <div className="fin-note-block">載入財務資料中…</div>
-        )}
+          <section className="fin-section">
+            <div className="fin-kpis">
+              <KpiCard
+                label="累計"
+                tokens={m.totals.tokens}
+                usd={m.totals.costUsd}
+                twd={m.totals.costTwd}
+              />
+              <KpiCard
+                label="今日"
+                tokens={m.today.tokens}
+                usd={m.today.costUsd}
+                twd={m.today.costTwd}
+              />
+            </div>
+          </section>
 
-        {state === 'err' && (
-          <div className="fin-note-block">
-            無法載入 <span className="mono">/metrics-full.json</span>。
-            此資料由 Caddy basicauth 保護，請透過 <span className="mono">https://apis.bot/dashboard</span>{' '}
-            並通過驗證後存取（直接打 :3000 因繞過 Caddy，無法取得此檔案）。
-          </div>
-        )}
-
-        {state === 'ok' && m && (
-          <>
-            <section className="fin-section">
-              <div className="fin-kpis">
-                <KpiCard
-                  label="累計"
-                  tokens={m.totals.tokens}
-                  usd={m.totals.costUsd}
-                  twd={m.totals.costTwd}
-                />
-                <KpiCard
-                  label="今日"
-                  tokens={m.today.tokens}
-                  usd={m.today.costUsd}
-                  twd={m.today.costTwd}
-                />
-              </div>
-            </section>
-
-            <section className="fin-section">
-              <div className="fin-sec-title">
-                派工帳本 · 依專案
-                <span className="fin-tag">較準 · 往後累積</span>
-              </div>
-              {ledger.length > 0 ? (
-                <div className="fin-card">
-                  <table className="fin-table">
-                    <thead>
-                      <tr>
-                        <th>專案</th>
-                        <th className="num">任務</th>
-                        <th className="num">Token</th>
-                        <th className="num">USD</th>
-                        <th className="num">TWD</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {ledger.map((r) => (
-                        <tr key={r.name}>
-                          <td>{r.name}</td>
-                          <td className="num mono">{r.tasks}</td>
-                          <td className="num mono">{fmtTok(r.tokens)}</td>
-                          <td className="num mono fin-usd">{fmtUsd(r.costUsd)}</td>
-                          <td className="num mono fin-twd">{fmtTwd(r.costTwd)}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              ) : (
-                <div className="fin-card fin-empty">
-                  派工帳本累積中 — 隨著任務派工歸戶，這裡會逐漸補上更精準的專案成本。
-                </div>
-              )}
-            </section>
-
-            <section className="fin-section">
-              <div className="fin-sec-title">
-                依專案 · cwd 粗估
-                <span className="fin-tag muted">粗估</span>
-              </div>
+          <section className="fin-section">
+            <div className="fin-sec-title">
+              派工帳本 · 依專案
+              <span className="fin-tag">較準 · 往後累積</span>
+            </div>
+            {ledger.length > 0 ? (
               <div className="fin-card">
-                <MoneyBars rows={m.byProject} />
+                <table className="fin-table">
+                  <thead>
+                    <tr>
+                      <th>專案</th>
+                      <th className="num">任務</th>
+                      <th className="num">Token</th>
+                      <th className="num">USD</th>
+                      <th className="num">TWD</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {ledger.map((r) => (
+                      <tr key={r.name}>
+                        <td>{r.name}</td>
+                        <td className="num mono">{r.tasks}</td>
+                        <td className="num mono">{fmtTok(r.tokens)}</td>
+                        <td className="num mono fin-usd">{fmtUsd(r.costUsd)}</td>
+                        <td className="num mono fin-twd">{fmtTwd(r.costTwd)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
-            </section>
+            ) : (
+              <div className="fin-card fin-empty">
+                派工帳本累積中 — 隨著任務派工歸戶，這裡會逐漸補上更精準的專案成本。
+              </div>
+            )}
+          </section>
 
-            <section className="fin-section fin-grid2">
-              <div>
-                <div className="fin-sec-title">依員工</div>
-                <div className="fin-card">
-                  <MoneyBars rows={m.byAgent} />
-                </div>
-              </div>
-              <div>
-                <div className="fin-sec-title">依供應商</div>
-                <div className="fin-card">
-                  <MoneyBars rows={m.byProvider} />
-                </div>
-              </div>
-            </section>
+          <section className="fin-section">
+            <div className="fin-sec-title">
+              依專案 · cwd 粗估
+              <span className="fin-tag muted">粗估</span>
+            </div>
+            <div className="fin-card">
+              <MoneyBars rows={m.byProject} />
+            </div>
+          </section>
 
-            <section className="fin-section fin-grid2">
-              <div>
-                <div className="fin-sec-title">依模型</div>
-                <div className="fin-card">
-                  <MoneyBars rows={m.byModel} />
-                </div>
+          <section className="fin-section fin-grid2">
+            <div>
+              <div className="fin-sec-title">依員工</div>
+              <div className="fin-card">
+                <MoneyBars rows={m.byAgent} />
               </div>
-              <div>
-                <div className="fin-sec-title">派工數 · 依專案</div>
-                <div className="fin-card">
-                  {m.tasksByProject.length > 0 ? (
-                    <div className="fin-bars">
-                      {m.tasksByProject.map((t) => (
-                        <div key={t.project} className="fin-task-row">
-                          <span className="fin-bar-name">{t.project}</span>
-                          <span className="fin-task-num mono">{t.tasks} 筆</span>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="fin-empty">尚無派工</div>
-                  )}
-                </div>
+            </div>
+            <div>
+              <div className="fin-sec-title">依供應商</div>
+              <div className="fin-card">
+                <MoneyBars rows={m.byProvider} />
               </div>
-            </section>
+            </div>
+          </section>
 
-            {m.note && <p className="fin-foot-note">{m.note}</p>}
-          </>
-        )}
-      </div>
+          <section className="fin-section fin-grid2">
+            <div>
+              <div className="fin-sec-title">依模型</div>
+              <div className="fin-card">
+                <MoneyBars rows={m.byModel} />
+              </div>
+            </div>
+            <div>
+              <div className="fin-sec-title">派工數 · 依專案</div>
+              <div className="fin-card">
+                {m.tasksByProject.length > 0 ? (
+                  <div className="fin-bars">
+                    {m.tasksByProject.map((t) => (
+                      <div key={t.project} className="fin-task-row">
+                        <span className="fin-bar-name">{t.project}</span>
+                        <span className="fin-task-num mono">{t.tasks} 筆</span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="fin-empty">尚無派工</div>
+                )}
+              </div>
+            </div>
+          </section>
+
+          {m.note && <p className="fin-foot-note">{m.note}</p>}
+        </div>
+      )}
     </main>
   )
 }
