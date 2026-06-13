@@ -249,6 +249,52 @@ const PROJECT_DETAILS: Record<string, ProjectDetail> = {
 }
 
 /* ============================================================
+   帳本資料 — 匯總自 PROJECT_DETAILS
+   ============================================================ */
+type LedgerProjRow = {
+  name: string
+  tokens: string
+  tokenVal: number   // 方便排序/計算比例（K 為單位）
+  cost: string
+  costVal: number
+  trend: number
+  stateType: 'ok' | 'risk'
+}
+
+const LEDGER_PROJECTS: LedgerProjRow[] = [
+  { name: 'LED-Startup', tokens: '2.1M', tokenVal: 2100, cost: '$8.40', costVal: 8.4,  trend: -12, stateType: 'ok' },
+  { name: 'OmniSense',   tokens: '980K', tokenVal: 980,  cost: '$3.92', costVal: 3.92, trend: 0,   stateType: 'risk' },
+  { name: 'Hive',        tokens: '3.4M', tokenVal: 3400, cost: '$13.60',costVal: 13.6, trend: 8,   stateType: 'ok' },
+]
+
+// 匯總各員工跨專案 token / cost
+type LedgerEmpRow = { who: string; val: number; label: string; cost: string; costVal: number }
+function buildLedgerEmployees(): LedgerEmpRow[] {
+  const acc: Record<string, { val: number; costVal: number }> = {}
+  Object.values(PROJECT_DETAILS).forEach((d) => {
+    d.breakdown.forEach((b) => {
+      if (!acc[b.who]) acc[b.who] = { val: 0, costVal: 0 }
+      acc[b.who].val += b.val
+      acc[b.who].costVal += parseFloat(b.cost.replace('$', ''))
+    })
+  })
+  return Object.entries(acc)
+    .map(([who, { val, costVal }]) => ({
+      who,
+      val,
+      label: val >= 1000 ? `${(val / 1000).toFixed(1)}M` : `${val}K`,
+      cost: `$${costVal.toFixed(2)}`,
+      costVal,
+    }))
+    .sort((a, b) => b.val - a.val)
+}
+const LEDGER_EMPLOYEES = buildLedgerEmployees()
+
+const LEDGER_TOTAL_COST = LEDGER_PROJECTS.reduce((s, p) => s + p.costVal, 0)
+const LEDGER_TOTAL_TOKENS_K = LEDGER_PROJECTS.reduce((s, p) => s + p.tokenVal, 0)
+const LEDGER_DAILY_AVG = (LEDGER_TOTAL_COST / 30).toFixed(2)
+
+/* ============================================================
    即時活動流產生器（右側 LOG）
    ============================================================ */
 const ACTORS = [
@@ -397,8 +443,11 @@ function LoginModal({ onSuccess }: { onSuccess: () => void }) {
 
 /* ============================================================
    卡片 tilt + 跟隨游標光斑
+   （只在 hover 裝置生效，手機/觸控不觸發）
    ============================================================ */
 function handleTiltMove(e: MouseEvent<HTMLDivElement>) {
+  // 手機觸控裝置沒有 hover，跳過 tilt 避免誤觸
+  if (!window.matchMedia('(hover: hover)').matches) return
   const card = e.currentTarget
   const r = card.getBoundingClientRect()
   const px = (e.clientX - r.left) / r.width
@@ -639,21 +688,132 @@ function ProjectDetailView({ name, leaving, onBack }: { name: string; leaving: b
 }
 
 /* ============================================================
+   帳本 Tab 視圖
+   ============================================================ */
+function LedgerView() {
+  const barRef = useRef<HTMLDivElement>(null)
+  const maxTokenVal = Math.max(...LEDGER_EMPLOYEES.map((e) => e.val))
+  const maxProjVal = Math.max(...LEDGER_PROJECTS.map((p) => p.tokenVal))
+
+  useEffect(() => {
+    const node = barRef.current
+    if (!node) return
+    const bars = node.querySelectorAll<HTMLElement>('.tk-bar')
+    const id = requestAnimationFrame(() => {
+      bars.forEach((b) => { b.style.width = b.dataset.w || '0' })
+    })
+    return () => cancelAnimationFrame(id)
+  }, [])
+
+  return (
+    <div ref={barRef} className="ledger-root">
+      {/* KPI 三格 */}
+      <div className="ledger-kpi-grid">
+        <div className="ledger-kpi-card">
+          <div className="ledger-kpi-label">本月花費</div>
+          <div className="ledger-kpi-big">${LEDGER_TOTAL_COST.toFixed(2)}</div>
+          <div className="ledger-kpi-sub">累積 Token 消耗</div>
+        </div>
+        <div className="ledger-kpi-card">
+          <div className="ledger-kpi-label">本月 Tokens</div>
+          <div className="ledger-kpi-big">
+            {LEDGER_TOTAL_TOKENS_K >= 1000
+              ? `${(LEDGER_TOTAL_TOKENS_K / 1000).toFixed(1)}M`
+              : `${LEDGER_TOTAL_TOKENS_K}K`}
+          </div>
+          <div className="ledger-kpi-sub">跨三個專案</div>
+        </div>
+        <div className="ledger-kpi-card">
+          <div className="ledger-kpi-label">日均花費</div>
+          <div className="ledger-kpi-big">${LEDGER_DAILY_AVG}</div>
+          <div className="ledger-kpi-sub">30 天均攤</div>
+        </div>
+      </div>
+
+      {/* 各專案花費 */}
+      <div className="ledger-section">
+        <div className="detail-sec-title">各專案花費</div>
+        <div className="ledger-proj-list">
+          {LEDGER_PROJECTS.map((p) => (
+            <div key={p.name} className="ledger-proj-row">
+              <div className="ledger-proj-head">
+                <span className="ledger-proj-name">{p.name}</span>
+                <span className={`detail-badge ${p.stateType}`} style={{ marginLeft: 'auto' }}>
+                  {p.stateType === 'ok' ? 'On Track' : 'At Risk'}
+                </span>
+              </div>
+              <div className="ledger-proj-bar-row">
+                <span className="tk-bar-track">
+                  <span
+                    className="tk-bar"
+                    data-w={`${Math.round((p.tokenVal / maxProjVal) * 100)}%`}
+                  />
+                </span>
+                <span className="ledger-proj-nums">
+                  <span className="ledger-proj-token">{p.tokens}</span>
+                  <span className="ledger-proj-cost">{p.cost}</span>
+                </span>
+              </div>
+              {p.trend !== 0 && (
+                <span className={`dstat-trend${p.trend < 0 ? ' down' : ' up'}`} style={{ marginTop: 6 }}>
+                  {p.trend < 0 ? <IconTrendDown /> : <IconTrendUp />}
+                  本週 {Math.abs(p.trend)}%
+                </span>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* 各員工花費排名 */}
+      <div className="ledger-section">
+        <div className="detail-sec-title">員工花費排名</div>
+        <div className="tk-chart">
+          {LEDGER_EMPLOYEES.map((e) => (
+            <div key={e.who} className="tk-row">
+              <span className="tk-name">
+                <span className="av-mini" style={{ background: AV_COLORS[e.who] }}>
+                  {e.who[0]}
+                </span>
+                {e.who}
+              </span>
+              <span className="tk-bar-track">
+                <span className="tk-bar" data-w={`${Math.round((e.val / maxTokenVal) * 100)}%`} />
+              </span>
+              <span className="tk-val">
+                {e.label}
+                <span className="tk-cost">{e.cost}</span>
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+/* ============================================================
    Dashboard 主畫面
    ============================================================ */
+type TabKey = 'emp' | 'proj' | 'ledger'
+
 function Dashboard({ onLogout }: { onLogout: () => void }) {
-  const [tab, setTab] = useState<'emp' | 'proj'>('emp')
+  const [tab, setTab] = useState<TabKey>('emp')
   const [detail, setDetail] = useState<string | null>(null)
   const [leaving, setLeaving] = useState(false)
   const [log, setLog] = useState<LogEntry[]>([])
 
   const empTabRef = useRef<HTMLButtonElement>(null)
   const projTabRef = useRef<HTMLButtonElement>(null)
+  const ledgerTabRef = useRef<HTMLButtonElement>(null)
   const indicatorRef = useRef<HTMLDivElement>(null)
 
-  // sliding indicator 定位
+  // sliding indicator 定位（支援三個 tab）
   const positionIndicator = useCallback(() => {
-    const el = tab === 'emp' ? empTabRef.current : projTabRef.current
+    const el =
+      tab === 'emp' ? empTabRef.current
+      : tab === 'proj' ? projTabRef.current
+      : ledgerTabRef.current
     const ind = indicatorRef.current
     if (!el || !ind) return
     ind.style.width = el.offsetWidth + 'px'
@@ -681,7 +841,7 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
     return () => clearInterval(t)
   }, [])
 
-  const switchTab = (next: 'emp' | 'proj') => {
+  const switchTab = (next: TabKey) => {
     setTab(next)
     if (next !== 'proj') {
       // 離開專案視角時直接收起詳情（無動畫）
@@ -746,6 +906,9 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
             <button ref={projTabRef} className={`tab${tab === 'proj' ? ' active' : ''}`} onClick={() => switchTab('proj')}>
               專案視角
             </button>
+            <button ref={ledgerTabRef} className={`tab${tab === 'ledger' ? ' active' : ''}`} onClick={() => switchTab('ledger')}>
+              帳本
+            </button>
           </div>
 
           {/* Tab 1：員工總覽 */}
@@ -759,7 +922,7 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
                       <div className="emp-avatar" style={{ background: AV_COLORS[e.name] }}>
                         {e.name[0]}
                       </div>
-                      <div>
+                      <div className="emp-info">
                         <div className="emp-name">
                           <span className={`dot dot-${e.status}${e.status !== 'idle' ? ' breathe' : ''}`} />
                           {e.name}
@@ -854,6 +1017,11 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
               ))}
             </div>
             {detail && <ProjectDetailView name={detail} leaving={leaving} onBack={closeDetail} />}
+          </section>
+
+          {/* Tab 3：帳本 */}
+          <section className={`pane${tab === 'ledger' ? ' active' : ''}`}>
+            <LedgerView />
           </section>
         </main>
 

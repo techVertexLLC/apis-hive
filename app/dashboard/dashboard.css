@@ -285,6 +285,7 @@
   to { opacity: 1; transform: translateY(0); }
 }
 
+/* ── Header（桌面三欄 grid）── */
 .hive-dash-root .dash-top {
   position: sticky;
   top: 0;
@@ -296,7 +297,7 @@
   height: 66px;
   padding: 0 24px;
   border-bottom: 1px solid var(--comb-line);
-  background: rgba(11, 10, 9, 0.85);
+  background: rgba(11, 10, 9, 0.88);
   backdrop-filter: blur(16px);
 }
 .hive-dash-root .brand {
@@ -368,12 +369,15 @@
   padding: 7px 14px;
   border-radius: 9px;
   transition: all 0.25s var(--ease);
+  /* 手機觸控加大點擊區域 */
+  min-height: 36px;
 }
 .hive-dash-root .btn-logout:hover {
   border-color: rgba(248, 113, 113, 0.4);
   color: #fca5a5;
 }
 
+/* ── Body 雙欄 ── */
 .hive-dash-root .dash-body {
   display: grid;
   grid-template-columns: 1fr 332px;
@@ -389,7 +393,7 @@
   min-width: 0;
 }
 
-/* Tabs */
+/* ── Tabs（含 sliding indicator）── */
 .hive-dash-root .tabs {
   position: relative;
   display: inline-flex;
@@ -409,6 +413,10 @@
   font-weight: 500;
   color: var(--text-secondary);
   transition: color 0.3s var(--ease);
+  /* 手機加大點擊區 */
+  min-height: 40px;
+  display: inline-flex;
+  align-items: center;
 }
 .hive-dash-root .tab.active { color: #0b0a09; }
 .hive-dash-root .tab-indicator {
@@ -422,6 +430,7 @@
   box-shadow: 0 4px 16px rgba(245, 166, 35, 0.3);
 }
 
+/* ── Pane 切換動畫 ── */
 .hive-dash-root .pane {
   display: none;
   animation: hd-paneIn 0.45s var(--ease);
@@ -432,7 +441,7 @@
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* Tab1 員工卡 grid */
+/* ── Tab1 員工卡 grid ── */
 .hive-dash-root .emp-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
@@ -463,12 +472,26 @@
   box-shadow: 0 18px 50px rgba(0, 0, 0, 0.45);
 }
 .hive-dash-root .emp-card:hover::after { opacity: 1; }
+
+/* 手機觸控：active 態替代 hover */
+@media (hover: none) {
+  .hive-dash-root .emp-card:active {
+    border-color: rgba(245, 166, 35, 0.3);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  }
+}
+
 .hive-dash-root .emp-head {
   display: flex;
   align-items: center;
   gap: 11px;
   position: relative;
   z-index: 1;
+}
+/* emp-info 包裹 name + role，讓 status-pill 靠右 */
+.hive-dash-root .emp-info {
+  flex: 1;
+  min-width: 0;
 }
 .hive-dash-root .emp-avatar {
   width: 38px;
@@ -495,7 +518,7 @@
   font-family: var(--font-mono);
 }
 .hive-dash-root .emp-status-pill {
-  margin-left: auto;
+  flex-shrink: 0;
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -507,6 +530,7 @@
   border-radius: 99px;
   padding: 3px 9px;
   color: var(--text-secondary);
+  white-space: nowrap;
 }
 .hive-dash-root .task-block {
   margin-top: 16px;
@@ -572,7 +596,7 @@
   white-space: nowrap;
 }
 
-/* Tab2 專案 */
+/* ── Tab2 專案 ── */
 .hive-dash-root .proj-list {
   display: flex;
   flex-direction: column;
@@ -590,6 +614,13 @@
   border-color: rgba(245, 166, 35, 0.32);
   transform: translateY(-2px);
   box-shadow: 0 16px 44px rgba(0, 0, 0, 0.42);
+}
+/* 手機觸控回饋 */
+@media (hover: none) {
+  .hive-dash-root .proj-card:active {
+    border-color: rgba(245, 166, 35, 0.28);
+    background: var(--bg-overlay);
+  }
 }
 .hive-dash-root .proj-head {
   display: flex;
@@ -624,6 +655,14 @@
   opacity: 1;
   transform: translateX(0);
   color: var(--honey-400);
+}
+/* 手機：永遠顯示 enter hint */
+@media (hover: none) {
+  .hive-dash-root .proj-enter {
+    opacity: 1;
+    transform: translateX(0);
+    color: var(--honey-600);
+  }
 }
 .hive-dash-root .proj-avatars {
   display: flex;
@@ -666,6 +705,7 @@
   border-radius: 10px;
   font-size: 13.5px;
   transition: background 0.25s var(--ease);
+  flex-wrap: wrap; /* 手機自動換行 */
 }
 .hive-dash-root .ptask:hover { background: var(--bg-overlay); }
 .hive-dash-root .ptask .pwho {
@@ -684,10 +724,12 @@
   display: inline-flex;
   align-items: center;
   gap: 5px;
+  white-space: nowrap;
 }
 .hive-dash-root .ptask .pmsg {
   color: var(--text-secondary);
   flex: 1;
+  min-width: 0; /* 防溢出 */
 }
 .hive-dash-root .proj-foot {
   margin-top: 16px;
@@ -742,6 +784,7 @@
   background: rgba(19, 17, 14, 0.5);
   transition: all 0.25s var(--ease);
   margin-bottom: 20px;
+  min-height: 40px; /* 手機好按 */
 }
 .hive-dash-root .detail-back:hover {
   border-color: rgba(245, 166, 35, 0.4);
@@ -807,7 +850,7 @@
   .hive-dash-root .detail-stats { grid-template-columns: repeat(2, 1fr); }
 }
 @media (max-width: 520px) {
-  .hive-dash-root .detail-stats { grid-template-columns: 1fr; }
+  .hive-dash-root .detail-stats { grid-template-columns: repeat(2, 1fr); }
 }
 .hive-dash-root .dstat {
   border: 1px solid var(--comb-line);
@@ -1076,6 +1119,7 @@
   font-weight: 600;
 }
 
+/* ── Token 花費橫條 ── */
 .hive-dash-root .tk-chart {
   display: flex;
   flex-direction: column;
@@ -1128,7 +1172,143 @@
   .hive-dash-root .tk-val .tk-cost { margin-left: 5px; }
 }
 
-/* 右側即時 log */
+/* ============================================================
+   Tab3：帳本
+   ============================================================ */
+.hive-dash-root .ledger-root {
+  /* 整個帳本視圖 */
+}
+
+/* KPI 三格 */
+.hive-dash-root .ledger-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  margin-bottom: 30px;
+}
+@media (max-width: 640px) {
+  .hive-dash-root .ledger-kpi-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+  /* 第三個 KPI 卡跨兩欄 */
+  .hive-dash-root .ledger-kpi-card:last-child {
+    grid-column: 1 / -1;
+  }
+}
+.hive-dash-root .ledger-kpi-card {
+  border: 1px solid var(--comb-line);
+  background: var(--bg-raised);
+  border-radius: 16px;
+  padding: 20px;
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.3s var(--ease), box-shadow 0.3s var(--ease);
+}
+.hive-dash-root .ledger-kpi-card::before {
+  /* 頂部琥珀光條 */
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--honey-500), transparent);
+  opacity: 0.6;
+}
+.hive-dash-root .ledger-kpi-card:hover {
+  border-color: rgba(245, 166, 35, 0.34);
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.38);
+}
+.hive-dash-root .ledger-kpi-label {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+}
+.hive-dash-root .ledger-kpi-big {
+  font-family: var(--font-display);
+  font-size: 32px;
+  font-weight: 600;
+  color: var(--honey-400);
+  line-height: 1;
+  letter-spacing: -0.01em;
+}
+.hive-dash-root .ledger-kpi-sub {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 8px;
+}
+@media (max-width: 640px) {
+  .hive-dash-root .ledger-kpi-big { font-size: 26px; }
+  .hive-dash-root .ledger-kpi-card { padding: 16px; }
+}
+
+/* 帳本分組 */
+.hive-dash-root .ledger-section {
+  margin-bottom: 30px;
+}
+
+/* 各專案花費行 */
+.hive-dash-root .ledger-proj-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.hive-dash-root .ledger-proj-row {
+  border: 1px solid var(--comb-line);
+  background: var(--bg-raised);
+  border-radius: 14px;
+  padding: 16px 20px;
+  transition: border-color 0.3s var(--ease);
+}
+.hive-dash-root .ledger-proj-row:hover {
+  border-color: rgba(245, 166, 35, 0.3);
+}
+.hive-dash-root .ledger-proj-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.hive-dash-root .ledger-proj-name {
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+.hive-dash-root .ledger-proj-bar-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.hive-dash-root .ledger-proj-nums {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+.hive-dash-root .ledger-proj-token {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+.hive-dash-root .ledger-proj-cost {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--honey-400);
+}
+@media (max-width: 560px) {
+  .hive-dash-root .ledger-proj-row { padding: 14px 16px; }
+  .hive-dash-root .ledger-proj-bar-row { flex-direction: column; align-items: flex-start; gap: 8px; }
+  .hive-dash-root .ledger-proj-bar-row .tk-bar-track { width: 100%; }
+}
+
+/* ============================================================
+   右側即時 log
+   ============================================================ */
 .hive-dash-root .side {
   position: sticky;
   top: 66px;
@@ -1165,6 +1345,9 @@
 @media (max-width: 1080px) {
   .hive-dash-root .side-log { max-height: 420px; }
 }
+@media (max-width: 640px) {
+  .hive-dash-root .side-log { max-height: 320px; }
+}
 .hive-dash-root .log-row {
   padding: 9px 20px;
   font-family: var(--font-mono);
@@ -1193,16 +1376,114 @@
 
 .hive-dash-root .hidden { display: none !important; }
 
+/* ============================================================
+   手機 RWD（≤640px）— 打磨重點
+   ============================================================ */
 @media (max-width: 640px) {
-  .hive-dash-root .summary-bar { display: none; }
+  /* Header：兩列佈局
+     第一列：brand 左、logout 右
+     第二列：summary-bar 跨全寬（compact）
+  */
   .hive-dash-root .dash-top {
-    grid-template-columns: auto auto;
-    height: 60px;
-    padding: 0 16px;
-    gap: 10px;
+    grid-template-columns: 1fr auto;
+    grid-template-rows: auto auto;
+    height: auto;
+    padding: 12px 16px 8px;
+    gap: 0;
   }
+  /* brand 在第一列第一欄 */
+  .hive-dash-root .brand {
+    grid-column: 1;
+    grid-row: 1;
+  }
+  /* logout 在第一列第二欄 */
+  .hive-dash-root .dash-top-right {
+    grid-column: 2;
+    grid-row: 1;
+    justify-self: end;
+    align-self: center;
+    gap: 8px;
+  }
+  /* summary-bar 跨兩欄，第二列 */
+  .hive-dash-root .summary-bar {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    justify-self: stretch;
+    justify-content: center;
+    font-size: 11px;
+    gap: 12px;
+    padding: 6px 14px;
+    margin-top: 8px;
+    border-radius: 99px;
+    /* 手機顯示（取消之前的 display:none）*/
+    display: flex;
+  }
+  .hive-dash-root .summary-bar .seg { gap: 5px; }
+  .hive-dash-root .summary-bar .dot { width: 6px; height: 6px; }
+
   .hive-dash-root .last-update { display: none; }
-  .hive-dash-root .dash-main { padding: 20px 16px 60px; }
-  .hive-dash-root .emp-grid { grid-template-columns: 1fr; }
+
   .hive-dash-root .brand span.full { display: none; }
+  .hive-dash-root .brand { font-size: 16px; }
+
+  /* 主內容 padding */
+  .hive-dash-root .dash-main { padding: 16px 14px 80px; }
+
+  /* Tabs：撐滿全寬，三個均分 */
+  .hive-dash-root .tabs {
+    display: flex;
+    width: 100%;
+    margin-bottom: 20px;
+  }
+  .hive-dash-root .tab {
+    flex: 1;
+    text-align: center;
+    justify-content: center;
+    padding: 10px 8px;
+    font-size: 13px;
+  }
+
+  /* 員工卡 */
+  .hive-dash-root .emp-grid { grid-template-columns: 1fr; gap: 12px; }
+  .hive-dash-root .emp-card { padding: 16px 14px; }
+  .hive-dash-root .emp-avatar { width: 34px; height: 34px; font-size: 14px; border-radius: 9px; }
+  .hive-dash-root .emp-head { gap: 9px; }
+  .hive-dash-root .emp-name { font-size: 14px; }
+  .hive-dash-root .emp-status-pill { font-size: 9.5px; padding: 2px 7px; }
+  .hive-dash-root .task-item { font-size: 13px; }
+
+  /* 專案卡 */
+  .hive-dash-root .proj-card { padding: 16px; }
+  .hive-dash-root .proj-title { font-size: 17px; }
+  /* ptask 手機：pwho + pstate 第一行，pmsg 第二行 */
+  .hive-dash-root .ptask {
+    flex-wrap: wrap;
+    gap: 5px 8px;
+    padding: 8px 10px;
+  }
+  .hive-dash-root .ptask .pwho { min-width: unset; }
+  .hive-dash-root .ptask .pmsg {
+    width: 100%;
+    flex: unset;
+    font-size: 12.5px;
+    padding-left: 0;
+    color: var(--text-muted);
+  }
+
+  /* 專案詳情 */
+  .hive-dash-root .detail-title { font-size: 22px; }
+
+  /* dstat 手機 2 欄 */
+  .hive-dash-root .detail-stats { grid-template-columns: repeat(2, 1fr); }
+  .hive-dash-root .dstat { padding: 14px; }
+  .hive-dash-root .dstat-big { font-size: 22px; }
+  .hive-dash-root .ring { width: 58px; height: 58px; }
+  .hive-dash-root .ring-num { font-size: 14px; }
+}
+
+/* 極小螢幕（≤380px）— 避免擠爆 */
+@media (max-width: 380px) {
+  .hive-dash-root .summary-bar { gap: 8px; font-size: 10px; padding: 5px 10px; }
+  .hive-dash-root .tab { font-size: 12px; padding: 9px 5px; }
+  .hive-dash-root .ledger-kpi-big { font-size: 22px; }
 }
