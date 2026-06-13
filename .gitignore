@@ -39,3 +39,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# 算力帳本 runtime 資料(cron 產)
+public/stats.json
