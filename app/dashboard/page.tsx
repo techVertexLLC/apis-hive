@@ -135,10 +135,21 @@ type HiveProjectBusiness = {
 
 type HiveProject = HiveProjectMeta | HiveProjectBusiness
 
+/* Repo 分支狀態（/api/hive-status 的 repos 欄位） */
+type HivePR = { number: number; title: string; url: string }
+type HiveRepo = {
+  name: string
+  role: string
+  trunk: string | null
+  aheadOfMain: number | null
+  openPRs: HivePR[]
+}
+
 type HiveData = {
   generatedAt: string
   employees: HiveEmployee[]
   projects: HiveProject[]
+  repos?: HiveRepo[]
 }
 
 const HIVE_STATUS_LABEL: Record<HiveStatus, string> = {
@@ -1143,10 +1154,78 @@ function ProjectView({ data, error }: { data: HiveData | null; error: string | n
 }
 
 /* ============================================================
+   程式碼版圖面板（/api/hive-status repos 欄位）
+   ============================================================ */
+function RepoPanelView({ data, error }: { data: HiveData | null; error: string | null }) {
+  if (!data) {
+    return (
+      <div className="cost-state">
+        {error ? `版圖資料讀取失敗（${error}）— 稍後自動重試` : '版圖資料載入中…'}
+      </div>
+    )
+  }
+  const repos: HiveRepo[] = data.repos ?? []
+  if (repos.length === 0) {
+    return <div className="cost-state">尚無 Repo 資料</div>
+  }
+
+  return (
+    <div className="repo-panel">
+      <div className="repo-panel-head">
+        <span className="repo-panel-title">程式碼版圖</span>
+        <span className="repo-panel-sub">各 Repo 分支狀態 · 待 CTO 合 PR</span>
+      </div>
+      {repos.map((r) => (
+        <div key={r.name} className="repo-row">
+          {/* 左：名稱 + 角色 */}
+          <div className="repo-info">
+            <span className="repo-name mono">{r.name}</span>
+            <span className="repo-role">{r.role}</span>
+            {/* 追蹤分支（mono 琥珀色小字） */}
+            <span className={`repo-trunk mono${r.trunk ? '' : ' repo-trunk-empty'}`}>
+              {r.trunk ? r.trunk : '— 無追蹤分支'}
+            </span>
+          </div>
+
+          {/* 右：ahead badge + sync 狀態 */}
+          <div className="repo-status-col">
+            {r.aheadOfMain === null ? (
+              <span className="repo-sync-label">— 無分支</span>
+            ) : r.aheadOfMain === 0 ? (
+              <span className="repo-sync-label">已同步</span>
+            ) : (
+              <span className="ahead-badge">待合 +{r.aheadOfMain}</span>
+            )}
+          </div>
+
+          {/* PR 連結（跨行，貼在 info 下方） */}
+          {r.openPRs.length > 0 && (
+            <div className="repo-prs">
+              {r.openPRs.map((pr) => (
+                <a
+                  key={pr.number}
+                  href={pr.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="repo-pr-link"
+                  title={pr.title}
+                >
+                  #{pr.number} {pr.title}
+                </a>
+              ))}
+            </div>
+          )}
+        </div>
+      ))}
+    </div>
+  )
+}
+
+/* ============================================================
    Dashboard 主畫面
    ============================================================ */
 function Dashboard({ onLogout }: { onLogout: () => void }) {
-  const [tab, setTab] = useState<'emp' | 'proj' | 'cost'>('emp')
+  const [tab, setTab] = useState<'emp' | 'proj' | 'cost' | 'repo'>('emp')
   const [log, setLog] = useState<LogEntry[]>([])
 
   // 員工總覽 + 專案視角共用的即時治理資料，每 15 秒輪詢
@@ -1155,11 +1234,16 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
   const empTabRef = useRef<HTMLButtonElement>(null)
   const projTabRef = useRef<HTMLButtonElement>(null)
   const costTabRef = useRef<HTMLButtonElement>(null)
+  const repoTabRef = useRef<HTMLButtonElement>(null)
   const indicatorRef = useRef<HTMLDivElement>(null)
 
   // sliding indicator 定位
   const positionIndicator = useCallback(() => {
-    const el = tab === 'emp' ? empTabRef.current : tab === 'proj' ? projTabRef.current : costTabRef.current
+    const el =
+      tab === 'emp' ? empTabRef.current :
+      tab === 'proj' ? projTabRef.current :
+      tab === 'cost' ? costTabRef.current :
+      repoTabRef.current
     const ind = indicatorRef.current
     if (!el || !ind) return
     ind.style.width = el.offsetWidth + 'px'
@@ -1187,7 +1271,7 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
     return () => clearInterval(t)
   }, [])
 
-  const switchTab = (next: 'emp' | 'proj' | 'cost') => {
+  const switchTab = (next: 'emp' | 'proj' | 'cost' | 'repo') => {
     setTab(next)
   }
 
@@ -1240,6 +1324,9 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
             <button ref={costTabRef} className={`tab${tab === 'cost' ? ' active' : ''}`} onClick={() => switchTab('cost')}>
               帳本
             </button>
+            <button ref={repoTabRef} className={`tab${tab === 'repo' ? ' active' : ''}`} onClick={() => switchTab('repo')}>
+              版圖
+            </button>
           </div>
 
           {/* Tab 1：員工總覽（即時資料） */}
@@ -1255,6 +1342,11 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
           {/* Tab 3：帳本 */}
           <section className={`pane${tab === 'cost' ? ' active' : ''}`}>
             <CostPane active={tab === 'cost'} />
+          </section>
+
+          {/* Tab 4：程式碼版圖 */}
+          <section className={`pane${tab === 'repo' ? ' active' : ''}`}>
+            <RepoPanelView data={hive} error={hiveError} />
           </section>
         </main>
 
