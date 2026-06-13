@@ -340,7 +340,7 @@ function LoginModal({ onSuccess }: { onSuccess: () => void }) {
     return () => clearTimeout(t)
   }, [])
 
-  const submit = (e: FormEvent) => {
+  const submit = async (e: FormEvent) => {
     e.preventDefault()
     if (value === PASSWORD) {
       try {
@@ -350,7 +350,7 @@ function LoginModal({ onSuccess }: { onSuccess: () => void }) {
       }
       // 同步向 /api/dash-login 種 cookie（dash_auth），讓「帳本」分頁能取 /api/metrics
       try {
-        void fetch('/api/dash-login', {
+        await fetch("/api/dash-login", {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ password: value }),

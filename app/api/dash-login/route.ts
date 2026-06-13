@@ -28,7 +28,7 @@ export async function POST(req: Request) {
     sameSite: "lax",
     path: "/",
     maxAge: 60 * 60 * 24 * 365,
-    secure: true,
+    secure: false,  // 站台目前純 HTTP(無 TLS),Secure 會讓瀏覽器拒收 cookie
   })
   return res
 }
