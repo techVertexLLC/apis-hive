@@ -103,6 +103,10 @@ type HiveProjectBusiness = {
   key: string
   name: string
   kind: 'business'
+  status?: string | null // 'active' | 'incubating'（籌備中）| 其他
+  lead?: string | null
+  telegram?: string | null
+  desc?: string | null
   assigned: number
   done: number
   open: number
@@ -589,6 +593,32 @@ function fmtRecentTime(ts: string): string {
   return `${pad(d.getMonth() + 1)}/${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`
 }
 
+/* 事業專案狀態 badge —— active=綠「進行中」、incubating=琥珀「籌備中」、其他=灰 */
+type ProjStatusKind = 'active' | 'incubating' | 'other'
+function projStatusKind(status?: string | null): ProjStatusKind {
+  if (status === 'active') return 'active'
+  if (status === 'incubating') return 'incubating'
+  return 'other'
+}
+const PROJ_STATUS_LABEL: Record<ProjStatusKind, string> = {
+  active: '進行中',
+  incubating: '籌備中',
+  other: '其他',
+}
+function ProjectStatusBadge({ status }: { status?: string | null }) {
+  const kind = projStatusKind(status)
+  return (
+    <span className={`proj-status-badge proj-status-${kind}`}>
+      <span className="proj-status-dot" />
+      {PROJ_STATUS_LABEL[kind]}
+    </span>
+  )
+}
+// incubating 視為籌備中：無任何派工時，呈現刻意的籌備 empty state（而非壞卡）
+function isIncubatingEmpty(p: HiveProjectBusiness): boolean {
+  return projStatusKind(p.status) === 'incubating' && p.assigned === 0
+}
+
 function HiveHero({ p, onOpen }: { p: HiveProjectMeta; onOpen: () => void }) {
   const m = p.metrics
   const stats: { label: string; val: number }[] = [
@@ -635,6 +665,7 @@ function HiveHero({ p, onOpen }: { p: HiveProjectMeta; onOpen: () => void }) {
 
 function BusinessProjectCard({ p, onOpen }: { p: HiveProjectBusiness; onOpen: () => void }) {
   const recent = p.recent.slice(0, 5)
+  const incubatingEmpty = isIncubatingEmpty(p)
   return (
     <div
       className="proj-card biz-card biz-card-clickable"
@@ -650,8 +681,11 @@ function BusinessProjectCard({ p, onOpen }: { p: HiveProjectBusiness; onOpen: ()
     >
       <div className="proj-head">
         <span className="proj-title">{p.name}</span>
+        <ProjectStatusBadge status={p.status} />
+        {p.lead && <span className="proj-lead-chip">負責人 {p.lead}</span>}
         <span className="proj-enter">看詳情 →</span>
       </div>
+      {p.desc && <div className="biz-desc">{p.desc}</div>}
       <div className="biz-stats">
         <div className="biz-stat">
           <span className="biz-stat-val tnum">{p.open}</span>
@@ -676,6 +710,8 @@ function BusinessProjectCard({ p, onOpen }: { p: HiveProjectBusiness; onOpen: ()
               <span className="biz-evt-time tnum">{fmtRecentTime(r.ts)}</span>
             </div>
           ))
+        ) : incubatingEmpty ? (
+          <div className="board-empty board-empty-incubating">籌備中 · 尚未派工</div>
         ) : (
           <div className="board-empty">尚無活動</div>
         )}
@@ -691,6 +727,7 @@ function BusinessProjectDetail({ p, onBack }: { p: HiveProjectBusiness; onBack: 
   const cost = p.cost
   const openTasks = tasks.filter((t) => t.status === 'open')
   const pct = p.assigned > 0 ? Math.round((p.done / p.assigned) * 100) : 0
+  const incubatingEmpty = isIncubatingEmpty(p)
 
   return (
     <div className="proj-detail active">
@@ -701,13 +738,19 @@ function BusinessProjectDetail({ p, onBack }: { p: HiveProjectBusiness; onBack: 
         <div>
           <h2 className="detail-title">{p.name}</h2>
           <div className="detail-badges">
+            <ProjectStatusBadge status={p.status} />
             <span className="detail-badge">事業專案</span>
-            {p.open > 0 ? (
+            {p.lead && <span className="detail-badge">負責人 {p.lead}</span>}
+            {p.telegram && <span className="detail-badge ok">專案群 已連線</span>}
+            {incubatingEmpty ? (
+              <span className="detail-badge">籌備中 · 尚未派工</span>
+            ) : p.open > 0 ? (
               <span className="detail-badge">{p.open} 進行中</span>
-            ) : (
+            ) : p.assigned > 0 ? (
               <span className="detail-badge ok">全部完成</span>
-            )}
+            ) : null}
           </div>
+          {p.desc && <p className="detail-desc">{p.desc}</p>}
         </div>
       </div>
 
@@ -785,6 +828,8 @@ function BusinessProjectDetail({ p, onBack }: { p: HiveProjectBusiness; onBack: 
               </div>
             ))}
           </div>
+        ) : incubatingEmpty ? (
+          <div className="board-empty board-empty-incubating">籌備中，尚未派工 · 開工後任務會出現在這裡</div>
         ) : (
           <div className="board-empty">目前無待辦</div>
         )}
@@ -818,6 +863,8 @@ function BusinessProjectDetail({ p, onBack }: { p: HiveProjectBusiness; onBack: 
               )
             })}
           </div>
+        ) : incubatingEmpty ? (
+          <div className="board-empty board-empty-incubating">籌備中，尚未派工</div>
         ) : (
           <div className="board-empty">尚無派工</div>
         )}

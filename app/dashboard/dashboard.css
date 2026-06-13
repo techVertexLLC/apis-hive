@@ -1669,3 +1669,74 @@
 .hive-dash-root .evo-trigger { color: var(--text-secondary); }
 .hive-dash-root .evo-arrow { color: var(--honey-400); font-weight: 600; }
 .hive-dash-root .evo-action { color: var(--text-primary); }
+
+/* ============================================================
+   事業專案 — status badge / lead chip / desc / 籌備中 empty state
+   （嚴格附加，沿用暖黑+琥珀風格）
+   ============================================================ */
+/* 專案狀態 badge：active=綠、incubating=琥珀、其他=灰 */
+.hive-dash-root .proj-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  border: 1px solid var(--comb-line);
+  border-radius: 99px;
+  padding: 3px 10px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+.hive-dash-root .proj-status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 99px;
+  background: var(--text-muted);
+  flex-shrink: 0;
+}
+.hive-dash-root .proj-status-active {
+  color: var(--status-live);
+  border-color: rgba(74, 222, 128, 0.38);
+  background: rgba(74, 222, 128, 0.06);
+}
+.hive-dash-root .proj-status-active .proj-status-dot { background: var(--status-live); }
+.hive-dash-root .proj-status-incubating {
+  color: var(--honey-400);
+  border-color: rgba(245, 166, 35, 0.42);
+  background: rgba(245, 166, 35, 0.07);
+}
+.hive-dash-root .proj-status-incubating .proj-status-dot { background: var(--honey-500); }
+.hive-dash-root .proj-status-other {
+  color: var(--text-muted);
+  border-color: var(--comb-line);
+}
+
+/* 負責人 chip（列表卡，沿用 .chip 視覺） */
+.hive-dash-root .proj-lead-chip {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  border: 1px solid var(--comb-line);
+  border-radius: 6px;
+  padding: 2px 8px;
+  color: var(--text-secondary);
+  background: rgba(245, 166, 35, 0.04);
+  white-space: nowrap;
+}
+
+/* 專案描述（列表卡小字） */
+.hive-dash-root .biz-desc {
+  margin-top: 10px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--text-secondary);
+}
+
+/* 籌備中 empty state：琥珀虛線框，刻意而非壞卡 */
+.hive-dash-root .board-empty-incubating {
+  color: var(--honey-300);
+  border: 1px dashed rgba(245, 166, 35, 0.32);
+  border-radius: 12px;
+  background: rgba(245, 166, 35, 0.04);
+}
