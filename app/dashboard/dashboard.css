@@ -2027,3 +2027,259 @@
     overflow: visible;
   }
 }
+
+/* ============================================================
+   員工 drill-down modal — 暖黑 + 蜂蜜琥珀主題
+   ============================================================ */
+.hive-dash-root .emp-card-clickable {
+  cursor: pointer;
+}
+.hive-dash-root .emp-card-clickable:hover {
+  border-color: rgba(245, 166, 35, 0.3);
+}
+
+.hive-dash-root .emp-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background: rgba(0, 0, 0, 0.72);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.hive-dash-root .emp-modal {
+  background: var(--bg-raised);
+  border: 1px solid rgba(245, 166, 35, 0.18);
+  border-radius: 16px;
+  padding: 28px;
+  max-width: 520px;
+  width: 100%;
+  max-height: 85vh;
+  overflow-y: auto;
+  position: relative;
+  box-shadow: 0 32px 80px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(245, 166, 35, 0.06);
+  animation: modal-in 0.22s var(--ease);
+}
+@keyframes modal-in {
+  from { opacity: 0; transform: translateY(10px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0)   scale(1); }
+}
+
+.hive-dash-root .emp-modal-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-muted);
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s, color 0.15s;
+}
+.hive-dash-root .emp-modal-close:hover {
+  background: rgba(245, 166, 35, 0.15);
+  color: var(--honey-500);
+}
+
+.hive-dash-root .emp-modal-head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 4px;
+}
+
+.hive-dash-root .emp-modal-info {
+  flex: 1;
+}
+
+.hive-dash-root .emp-modal-name {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 2px;
+}
+
+.hive-dash-root .emp-modal-role {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+/* 分隔線 section */
+.hive-dash-root .emp-modal-section {
+  margin-top: 18px;
+  padding-top: 18px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.hive-dash-root .emp-modal-sec-title {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 10px;
+}
+
+/* execState pill */
+.hive-dash-root .exec-state {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 14px;
+  border-radius: 99px;
+  font-size: 13px;
+  font-weight: 500;
+}
+.hive-dash-root .exec-state::before {
+  content: '●';
+  font-size: 8px;
+}
+.hive-dash-root .exec-state-working {
+  background: rgba(245, 166, 35, 0.15);
+  color: var(--honey-500);
+  animation: amber-pulse 2s ease-in-out infinite;
+}
+.hive-dash-root .exec-state-blocked {
+  background: rgba(248, 113, 113, 0.15);
+  color: #f87171;
+}
+.hive-dash-root .exec-state-done {
+  background: rgba(74, 222, 128, 0.12);
+  color: #4ade80;
+}
+.hive-dash-root .exec-state-idle {
+  background: rgba(107, 101, 92, 0.3);
+  color: var(--text-muted);
+}
+@keyframes amber-pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.55; }
+}
+
+/* 當前任務文字框 */
+.hive-dash-root .emp-modal-current-task {
+  font-size: 14px;
+  color: var(--text-primary);
+  line-height: 1.55;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 8px;
+  padding: 10px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+/* 派工歷史清單 */
+.hive-dash-root .task-hist-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.hive-dash-root .task-hist-row {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 10px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.hive-dash-root .task-hist-dc {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--honey-500);
+  font-feature-settings: 'tnum';
+}
+
+.hive-dash-root .task-hist-name {
+  font-size: 13px;
+  color: var(--text-primary);
+  line-height: 1.4;
+}
+
+.hive-dash-root .task-hist-status-done {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: #4ade80;
+}
+
+.hive-dash-root .task-hist-status-open {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--honey-500);
+}
+
+.hive-dash-root .task-hist-meta {
+  font-size: 12px;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+/* ============================================================
+   手機 RWD 再打磨（640px 以下）
+   ============================================================ */
+@media (max-width: 640px) {
+  .hive-dash-root {
+    overflow-x: hidden;
+  }
+
+  /* tab 列：字縮小、padding 縮、讓 4 個 tab 放得下 */
+  .hive-dash-root .tabs {
+    gap: 0;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 2px;
+  }
+  .hive-dash-root .tab {
+    font-size: 13px;
+    padding: 8px 12px;
+    white-space: nowrap;
+  }
+
+  /* 員工卡 */
+  .hive-dash-root .emp-card {
+    padding: 14px;
+  }
+  .hive-dash-root .emp-name {
+    font-size: 14px;
+  }
+
+  /* 專案卡 */
+  .hive-dash-root .proj-card,
+  .hive-dash-root .biz-card {
+    padding: 14px;
+  }
+
+  /* 帳本 KPI 卡：2欄 */
+  .hive-dash-root .cost-kpis {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  /* 詳情 stats：2欄 */
+  .hive-dash-root .detail-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  /* modal 手機適配 */
+  .hive-dash-root .emp-modal {
+    max-width: calc(100vw - 32px);
+    padding: 20px;
+    max-height: 80vh;
+  }
+}
+

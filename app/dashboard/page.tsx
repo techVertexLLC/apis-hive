@@ -33,6 +33,14 @@ const AV_COLORS: Record<string, string> = {
    ============================================================ */
 type HiveStatus = 'working' | 'active' | 'idle' | 'offline'
 
+type HiveTaskHistoryItem = {
+  dc: string
+  task: string
+  status: string
+  ts: string
+  project: string
+}
+
 type HiveEmployee = {
   profile: string
   name: string
@@ -44,6 +52,9 @@ type HiveEmployee = {
   projects: string[]
   lastSeen: string
   rosterStatus: string
+  // drill-down 欄位（來自 /api/hive-status）
+  execState?: string | null        // '待命' | '進行中' | '可能卡住' | '完成'
+  taskHistory?: HiveTaskHistoryItem[] | null
 }
 
 type HiveLesson = { id: string; status: string; trigger: string; action: string }
@@ -547,6 +558,105 @@ function CostPane({ active }: { active: boolean }) {
 }
 
 /* ============================================================
+   員工 drill-down modal
+   點擊員工卡開啟：execState 顏色狀態、currentTask、taskHistory
+   ============================================================ */
+const EXEC_STATE_CLASS: Record<string, string> = {
+  '進行中': 'exec-state-working',
+  '可能卡住': 'exec-state-blocked',
+  '完成': 'exec-state-done',
+  '待命': 'exec-state-idle',
+}
+
+function EmployeeModal({ emp, onClose }: { emp: HiveEmployee; onClose: () => void }) {
+  // Escape 關閉
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
+    document.addEventListener('keydown', handler)
+    return () => document.removeEventListener('keydown', handler)
+  }, [onClose])
+
+  const execStateClass = emp.execState ? (EXEC_STATE_CLASS[emp.execState] ?? 'exec-state-idle') : null
+  const history = emp.taskHistory ?? []
+
+  return (
+    /* backdrop：點 backdrop 本身關閉 */
+    <div className="emp-modal-backdrop" onClick={onClose} role="presentation">
+      <div
+        className="emp-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="empModalTitle"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* 關閉按鈕 */}
+        <button className="emp-modal-close" onClick={onClose} aria-label="關閉">✕</button>
+
+        {/* 員工頭像 + 基本資料 */}
+        <div className="emp-modal-head">
+          <div className="emp-avatar" style={{ background: avBg(emp.name) }}>{emp.name[0]}</div>
+          <div className="emp-modal-info">
+            <div className="emp-modal-name" id="empModalTitle">{emp.name}</div>
+            <div className="emp-modal-role">{emp.role}</div>
+            <span className="model-badge" style={{ marginTop: 6, display: 'inline-block' }}>{emp.model}</span>
+          </div>
+        </div>
+
+        {/* execState 狀態 */}
+        {emp.execState && execStateClass && (
+          <div className="emp-modal-section">
+            <div className="emp-modal-sec-title">執行狀態</div>
+            <span className={`exec-state ${execStateClass}`}>{emp.execState}</span>
+          </div>
+        )}
+
+        {/* 當前任務 */}
+        {emp.currentTask && (
+          <div className="emp-modal-section">
+            <div className="emp-modal-sec-title">目前任務</div>
+            <div className="emp-modal-current-task">{emp.currentTask}</div>
+          </div>
+        )}
+
+        {/* 派工歷史 */}
+        {history.length > 0 && (
+          <div className="emp-modal-section">
+            <div className="emp-modal-sec-title">派工歷史</div>
+            <div className="task-hist-list">
+              {history.map((t, i) => (
+                <div key={t.dc || i} className="task-hist-row">
+                  <span className="task-hist-dc">{t.dc}</span>
+                  <span className="task-hist-name">{t.task}</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                    {t.status === 'done' ? (
+                      <span className="task-hist-status-done">✓ 完成</span>
+                    ) : (
+                      <span className="task-hist-status-open">◉ 進行中</span>
+                    )}
+                  </div>
+                  <div className="task-hist-meta">
+                    <span>{t.project}</span>
+                    <span>·</span>
+                    <span>{fmtRecentTime(t.ts)}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* 若無任何 execState / currentTask / history */}
+        {!emp.execState && !emp.currentTask && history.length === 0 && (
+          <div className="emp-modal-section">
+            <div style={{ color: 'var(--text-muted)', fontSize: 14 }}>目前無任務資料</div>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+/* ============================================================
    員工總覽（即時資料 /api/hive-status）
    ============================================================ */
 function avBg(name: string): string {
@@ -554,6 +664,8 @@ function avBg(name: string): string {
 }
 
 function EmployeeOverview({ data, error }: { data: HiveData | null; error: string | null }) {
+  const [selectedEmp, setSelectedEmp] = useState<HiveEmployee | null>(null)
+
   if (!data) {
     return (
       <div className="cost-state">
@@ -562,11 +674,30 @@ function EmployeeOverview({ data, error }: { data: HiveData | null; error: strin
     )
   }
   return (
-    <div className="emp-grid">
-      {data.employees.map((e) => {
-        const calm = e.status === 'idle' || e.status === 'offline'
-        return (
-          <div key={e.profile} className="emp-card" onMouseMove={handleTiltMove} onMouseLeave={handleTiltLeave}>
+    <>
+      {/* 員工 drill-down modal */}
+      {selectedEmp && (
+        <EmployeeModal emp={selectedEmp} onClose={() => setSelectedEmp(null)} />
+      )}
+      <div className="emp-grid">
+        {data.employees.map((e) => {
+          const calm = e.status === 'idle' || e.status === 'offline'
+          return (
+            <div
+              key={e.profile}
+              className="emp-card emp-card-clickable"
+              role="button"
+              tabIndex={0}
+              onClick={() => setSelectedEmp(e)}
+              onKeyDown={(ev) => {
+                if (ev.key === 'Enter' || ev.key === ' ') {
+                  ev.preventDefault()
+                  setSelectedEmp(e)
+                }
+              }}
+              onMouseMove={handleTiltMove}
+              onMouseLeave={handleTiltLeave}
+            >
             <div className="emp-head">
               <div className="emp-avatar" style={{ background: avBg(e.name) }}>
                 {e.name[0]}
@@ -606,10 +737,11 @@ function EmployeeOverview({ data, error }: { data: HiveData | null; error: strin
                 )}
               </div>
             </div>
-          </div>
+            </div>
         )
       })}
-    </div>
+      </div>
+    </>
   )
 }
 
