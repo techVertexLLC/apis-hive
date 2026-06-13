@@ -68,6 +68,8 @@ type HiveProjectMeta = {
     costUsd?: number
     costTwd?: number
     costTokens?: number
+    completionRate?: number
+    lessonUses?: number
   }
   detail?: {
     lessons: HiveLesson[]
@@ -90,6 +92,7 @@ type HiveTask = {
   note: string
   doneNote?: string
   ts: string
+  commits?: string[]
 }
 
 type HiveProjectCost = {
@@ -856,6 +859,15 @@ function BusinessProjectDetail({ p, onBack }: { p: HiveProjectBusiness; onBack: 
                   </div>
                   <div className="tcard-msg">{t.note}</div>
                   {done && t.doneNote && <div className="tcard-donenote">↳ {t.doneNote}</div>}
+                  {t.commits && t.commits.length > 0 && (
+                    <div className="tcard-commits">
+                      {t.commits.map((c) => (
+                        <span key={c} className="commit-chip">
+                          commit {c.slice(0, 7)}
+                        </span>
+                      ))}
+                    </div>
+                  )}
                   <div className="tcard-time">
                     {t.dc} · {fmtRecentTime(t.ts)}
                   </div>
@@ -918,6 +930,18 @@ function HiveDetail({ p, onBack }: { p: HiveProjectMeta; onBack: () => void }) {
           <div className="dstat-big num">{fmtUsd(m.costUsd)}</div>
           <div className="dstat-sub num">{fmtTwd(m.costTwd)}</div>
           <div className="dstat-sub num">{fmtInt(m.costTokens)} tokens</div>
+        </div>
+        <div className="dstat">
+          <div className="dstat-label">完工率</div>
+          <div className="dstat-big num">
+            {typeof m.completionRate === 'number' ? `${m.completionRate}%` : '—'}
+          </div>
+          <div className="dstat-sub num">完成 {m.tasksDone} / 派工 {m.tasksDispatched}</div>
+        </div>
+        <div className="dstat">
+          <div className="dstat-label">經驗複用</div>
+          <div className="dstat-big num">{fmtInt(m.lessonUses)}</div>
+          <div className="dstat-sub">經驗被複用次數</div>
         </div>
       </div>
 

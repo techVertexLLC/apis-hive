@@ -1641,6 +1641,25 @@
   padding-left: 9px;
 }
 
+/* 派工綁定的 git commit chips（短 hash · JetBrains Mono · 琥珀小標籤） */
+.hive-dash-root .tcard-commits {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 7px;
+}
+.hive-dash-root .commit-chip {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  line-height: 1;
+  color: var(--honey-400);
+  background: rgba(245, 166, 35, 0.1);
+  border: 1px solid rgba(245, 166, 35, 0.28);
+  border-radius: 5px;
+  padding: 3px 7px;
+  white-space: nowrap;
+}
+
 /* HIVE metrics 「在線 / 員工」的分母 */
 .hive-dash-root .dstat-of {
   color: var(--text-muted);
