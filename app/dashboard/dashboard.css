@@ -100,13 +100,9 @@
   z-index: 0;
   pointer-events: none;
   background-image: url("data:image/svg+xml,%3Csvg width='28' height='49' viewBox='0 0 28 49' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M13.99 9.25l13 7.5v15l-13 7.5L1 31.75v-15l12.99-7.5zM3 17.9v12.7l10.99 6.34 11-6.35V17.9l-11-6.34L3 17.9zM0 15l12.98-7.5V0h-2v6.35L0 12.69v2.3zm0 18.5L12.98 41v8h-2v-6.85L0 35.81v-2.3zM15 0v7.5L27.99 15H28v-2.31h-.01L17 6.35V0h-2zm0 49v-8l12.99-7.5H28v2.31h-.01L17 42.15V49h-2z' fill='rgba(245,166,35,0.14)' fill-rule='evenodd'/%3E%3C/svg%3E");
-  background-size: 56px 98px;
-  opacity: 0.5;
-  animation: hd-hex-breathe 11s ease-in-out infinite;
-}
-@keyframes hd-hex-breathe {
-  0%, 100% { opacity: 0.4; background-position: 0 0; }
-  50% { opacity: 0.7; background-position: 0 -14px; }
+  background-size: 84px 147px;
+  /* 調淡:大幅降低不透明度 + 拿掉呼吸動畫,改為沉穩低干擾的靜態極淡紋路(長時間盯不累) */
+  opacity: 0.06;
 }
 
 /* 呼吸燈 */
@@ -1369,4 +1365,202 @@
   color: var(--text-muted);
   border-top: 1px solid var(--comb-line);
   padding-top: 14px;
+}
+
+/* ============================================================
+   即時資料新增樣式 — 員工模型 badge / live pill / 專案視角 HERO + 事業卡
+   ============================================================ */
+
+/* offline 狀態點(沿用既有 dot 機制) */
+.hive-dash-root .dot-offline { background: #3a3631; }
+
+/* header live pill */
+.hive-dash-root .live-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+.hive-dash-root .live-pill .dot { width: 7px; height: 7px; }
+
+/* 員工卡 — 模型 badge */
+.hive-dash-root .emp-model-row {
+  margin: 10px 0 2px;
+}
+.hive-dash-root .model-badge {
+  display: inline-flex;
+  align-items: center;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.02em;
+  color: var(--honey-300);
+  background: rgba(245, 166, 35, 0.1);
+  border: 1px solid rgba(245, 166, 35, 0.22);
+  border-radius: 6px;
+  padding: 3px 9px;
+}
+.hive-dash-root .chip-muted {
+  color: var(--text-muted);
+  opacity: 0.7;
+}
+
+/* ---- 專案視角 ---- */
+.hive-dash-root .proj-view {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* HIVE HERO — 公司本體,層級高於事業專案 */
+.hive-dash-root .hive-hero {
+  position: relative;
+  border: 1px solid rgba(245, 166, 35, 0.3);
+  border-radius: 18px;
+  padding: 28px 30px;
+  background:
+    radial-gradient(120% 140% at 0% 0%, rgba(245, 166, 35, 0.1), transparent 55%),
+    linear-gradient(180deg, var(--bg-overlay), var(--bg-raised));
+  box-shadow: 0 0 0 1px rgba(245, 166, 35, 0.06), 0 18px 48px -24px rgba(0, 0, 0, 0.7);
+  overflow: hidden;
+}
+.hive-dash-root .hive-hero::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 3px;
+  background: linear-gradient(90deg, var(--honey-500), var(--honey-300), transparent);
+}
+.hive-dash-root .hive-hero-kicker {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--honey-400);
+  margin-bottom: 8px;
+}
+.hive-dash-root .hive-hero-title {
+  font-size: 30px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--text-primary);
+  line-height: 1.15;
+}
+.hive-dash-root .hive-hero-tagline {
+  margin-top: 8px;
+  font-size: 15px;
+  color: var(--honey-300);
+}
+.hive-dash-root .hive-hero-note {
+  margin-top: 10px;
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--text-secondary);
+  max-width: 760px;
+}
+.hive-dash-root .hive-hero-metrics {
+  margin-top: 22px;
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 12px;
+}
+.hive-dash-root .hive-metric {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 12px 6px;
+  border: 1px solid var(--comb-line);
+  border-radius: 12px;
+  background: rgba(11, 10, 9, 0.4);
+}
+.hive-dash-root .hive-metric-val {
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--honey-400);
+  line-height: 1;
+}
+.hive-dash-root .hive-metric-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  text-align: center;
+}
+@media (max-width: 900px) {
+  .hive-dash-root .hive-hero-metrics { grid-template-columns: repeat(4, 1fr); }
+}
+@media (max-width: 520px) {
+  .hive-dash-root .hive-hero-metrics { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* 事業專案區段標題 */
+.hive-dash-root .biz-section-title {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  padding-left: 2px;
+}
+
+/* 事業專案卡 */
+.hive-dash-root .biz-card {
+  cursor: default;
+}
+.hive-dash-root .biz-stats {
+  display: flex;
+  gap: 10px;
+  margin: 16px 0 18px;
+}
+.hive-dash-root .biz-stat {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 12px 6px;
+  border: 1px solid var(--comb-line);
+  border-radius: 12px;
+  background: rgba(11, 10, 9, 0.35);
+}
+.hive-dash-root .biz-stat-val {
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1;
+}
+.hive-dash-root .biz-stat-label {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.hive-dash-root .biz-recent .tb-label {
+  margin-bottom: 8px;
+}
+.hive-dash-root .biz-evt {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  padding: 7px 0;
+  font-size: 13px;
+  line-height: 1.55;
+  border-top: 1px solid rgba(245, 166, 35, 0.06);
+}
+.hive-dash-root .biz-evt:first-of-type { border-top: none; }
+.hive-dash-root .biz-evt-dot {
+  flex-shrink: 0;
+  width: 7px; height: 7px;
+  border-radius: 99px;
+  margin-top: 6px;
+}
+.hive-dash-root .biz-evt-done .biz-evt-dot { background: var(--status-live); }
+.hive-dash-root .biz-evt-assigned .biz-evt-dot { background: var(--honey-500); }
+.hive-dash-root .biz-evt-note {
+  flex: 1;
+  color: var(--text-secondary);
+}
+.hive-dash-root .biz-evt-done .biz-evt-note { color: var(--text-primary); }
+.hive-dash-root .biz-evt-time {
+  flex-shrink: 0;
+  font-size: 11px;
+  color: var(--text-muted);
+  white-space: nowrap;
 }

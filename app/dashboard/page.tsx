@@ -19,8 +19,6 @@ const PASSWORD = 'admin'
 /* ============================================================
    資料（由 dashboard-prototype.html 移植）
    ============================================================ */
-type Status = 'active' | 'working' | 'idle' | 'blocked'
-
 const AV_COLORS: Record<string, string> = {
   Meli: 'linear-gradient(135deg,#FFD89B,#F5A623)',
   Steve: 'linear-gradient(135deg,#FFC56B,#D98818)',
@@ -30,222 +28,117 @@ const AV_COLORS: Record<string, string> = {
   Penny: 'linear-gradient(135deg,#FFD89B,#D98818)',
 }
 
-const STATUS_LABEL: Record<Status, string> = {
-  active: 'ACTIVE',
-  working: 'WORKING',
-  idle: 'IDLE',
-  blocked: 'BLOCKED',
-}
+/* ============================================================
+   即時治理資料（/api/hive-status）型別 + 輪詢 hook
+   ============================================================ */
+type HiveStatus = 'working' | 'active' | 'idle' | 'offline'
 
-type Employee = {
+type HiveEmployee = {
+  profile: string
   name: string
   role: string
-  status: Status
-  tasks: string[]
-  chips: string[]
-  time: string
+  model: string
+  modelRaw: string
+  status: HiveStatus
+  currentTask: string | null
+  projects: string[]
+  lastSeen: string
+  rosterStatus: string
 }
 
-const EMPLOYEES: Employee[] = [
-  { name: 'Meli', role: 'COO', status: 'active', tasks: ['審核本週營運摘要', '追蹤 K1 交付進度'], chips: ['LED-Startup', 'Hive'], time: '2 分鐘前' },
-  { name: 'Steve', role: 'Frontend', status: 'working', tasks: ['修復產品頁響應式斷點', '實作 Hero 動畫'], chips: ['LED-Startup', 'Hive'], time: '剛剛' },
-  { name: 'Cora', role: 'PM', status: 'active', tasks: ['撰寫 OmniSense PRD v2', '拆解 Q3 需求'], chips: ['OmniSense'], time: '5 分鐘前' },
-  { name: 'Apple', role: 'SRE', status: 'idle', tasks: ['上次：API 延遲監控已完成'], chips: ['Platform'], time: '15 分鐘前' },
-  { name: 'Iris', role: 'Sales', status: 'working', tasks: ['跟進展會客戶名單', '整理報價單'], chips: ['LED-Startup'], time: '3 分鐘前' },
-  { name: 'Penny', role: 'CS', status: 'active', tasks: ['回覆客訴 #4821', '更新 FAQ 知識庫'], chips: ['LED-Startup'], time: '8 分鐘前' },
-]
-
-type ProjTask = { who: string; state: Status; msg: string }
-type Project = {
+type HiveProjectMeta = {
+  key: 'hive'
   name: string
-  people: string[]
-  sub?: string
-  tasks: ProjTask[]
-  today: number
-  week: number
-  last: string
+  kind: 'meta'
+  tagline: string
+  note: string
+  metrics: {
+    employees: number
+    online: number
+    lessonsActive: number
+    lessonsTotal: number
+    decisions: number
+    retros: number
+    tasksDispatched: number
+    tasksDone: number
+  }
 }
 
-const PROJECTS: Project[] = [
-  {
-    name: 'LED-Startup',
-    people: ['Meli', 'Iris', 'Penny', 'Steve'],
-    tasks: [
-      { who: 'Iris', state: 'working', msg: '跟進展會客戶名單' },
-      { who: 'Penny', state: 'active', msg: '回覆客訴 #4821' },
-      { who: 'Meli', state: 'active', msg: '審核本週營運摘要' },
-    ],
-    today: 12,
-    week: 89,
-    last: '1 分鐘前',
-  },
-  {
-    name: 'OmniSense',
-    people: ['Cora', 'Steve'],
-    tasks: [
-      { who: 'Cora', state: 'active', msg: '撰寫 PRD v2' },
-      { who: 'Steve', state: 'blocked', msg: '等待設計稿' },
-    ],
-    today: 5,
-    week: 34,
-    last: '5 分鐘前',
-  },
-  {
-    name: 'Hive',
-    people: ['Steve', 'Meli'],
-    sub: '官網專案',
-    tasks: [
-      { who: 'Steve', state: 'working', msg: '實作 Hero 動畫' },
-      { who: 'Meli', state: 'active', msg: '規劃 Dashboard' },
-    ],
-    today: 8,
-    week: 52,
-    last: '剛剛',
-  },
-]
+type HiveProjectRecent = {
+  dc: string
+  action: 'task_assigned' | 'task_completed'
+  note: string
+  ts: string
+}
 
-type BoardCard = { who: string; msg: string; pri?: string; time?: string }
-type ProjectDetail = {
-  state: string
-  stateType: 'ok' | 'risk'
-  desc: string
-  pct: number
+type HiveProjectBusiness = {
+  key: string
+  name: string
+  kind: 'business'
+  assigned: number
   done: number
-  total: number
-  weekDeliver: number
-  overdue: number
-  tokens: string
-  cost: string
-  trend: number
-  people: string[]
-  board: { progress: BoardCard[]; review: BoardCard[]; done: BoardCard[] }
-  timeline: { date: string; items: { who: string; msg: string }[] }[]
-  breakdown: { who: string; val: number; label: string; cost: string }[]
+  open: number
+  recent: HiveProjectRecent[]
 }
 
-const PROJECT_DETAILS: Record<string, ProjectDetail> = {
-  'LED-Startup': {
-    state: 'On Track',
-    stateType: 'ok',
-    desc: 'K1 Visual Solutions LED 經銷官網建置與營運',
-    pct: 72,
-    done: 18,
-    total: 25,
-    weekDeliver: 6,
-    overdue: 0,
-    tokens: '2.1M',
-    cost: '$8.40',
-    trend: -12,
-    people: ['Meli', 'Steve', 'Iris', 'Penny'],
-    board: {
-      progress: [
-        { who: 'Steve', msg: '修復產品頁 RWD 斷點', pri: 'high' },
-        { who: 'Iris', msg: '跟進展會客戶名單', pri: 'med' },
-        { who: 'Penny', msg: '更新 FAQ 知識庫', pri: 'low' },
-      ],
-      review: [{ who: 'Meli', msg: '審核本週營運週報' }],
-      done: [
-        { who: 'Steve', msg: '完成 SEO 結構優化', time: '今天 14:20' },
-        { who: 'Iris', msg: '發送 12 封客戶報價', time: '今天 11:05' },
-      ],
-    },
-    timeline: [
-      { date: '06/12 · 今天', items: [{ who: 'Steve', msg: '修復產品頁 RWD 斷點' }, { who: 'Iris', msg: '發送 12 封客戶報價' }] },
-      { date: '06/11', items: [{ who: 'Penny', msg: '更新 FAQ 知識庫 8 條' }] },
-      { date: '06/10', items: [{ who: 'Steve', msg: '完成 SEO 結構化資料標記' }] },
-      { date: '06/09', items: [{ who: 'Meli', msg: '審核並歸檔本週週報' }] },
-      { date: '06/08', items: [{ who: 'Iris', msg: '整理展會名單 24 筆' }] },
-      { date: '06/07', items: [{ who: 'Penny', msg: '處理客訴 #4821' }] },
-      { date: '06/06', items: [{ who: 'Steve', msg: '上線產品比較頁' }] },
-    ],
-    breakdown: [
-      { who: 'Steve', val: 820, label: '820K', cost: '$3.28' },
-      { who: 'Meli', val: 540, label: '540K', cost: '$2.16' },
-      { who: 'Iris', val: 480, label: '480K', cost: '$1.92' },
-      { who: 'Penny', val: 260, label: '260K', cost: '$1.04' },
-    ],
-  },
-  OmniSense: {
-    state: 'At Risk',
-    stateType: 'risk',
-    desc: '智慧感測器產品線規劃與前期開發',
-    pct: 38,
-    done: 8,
-    total: 21,
-    weekDeliver: 2,
-    overdue: 1,
-    tokens: '980K',
-    cost: '$3.92',
-    trend: 0,
-    people: ['Cora', 'Steve'],
-    board: {
-      progress: [
-        { who: 'Cora', msg: '撰寫 PRD v2 第 3 章', pri: 'high' },
-        { who: 'Steve', msg: '等待設計稿，開發暫停', pri: 'blocked' },
-      ],
-      review: [],
-      done: [
-        { who: 'Cora', msg: '完成競品分析報告', time: '06/10' },
-        { who: 'Steve', msg: '完成 wireframe v1', time: '06/09' },
-      ],
-    },
-    timeline: [
-      { date: '06/12 · 今天', items: [{ who: 'Cora', msg: '撰寫 PRD v2 第 3 章' }] },
-      { date: '06/11', items: [{ who: 'Steve', msg: '標記設計稿阻塞，通知設計團隊' }] },
-      { date: '06/10', items: [{ who: 'Cora', msg: '完成競品分析報告' }] },
-      { date: '06/09', items: [{ who: 'Steve', msg: '完成 wireframe v1' }] },
-      { date: '06/08', items: [{ who: 'Cora', msg: '拆解 Q3 需求為 14 張卡片' }] },
-      { date: '06/07', items: [{ who: 'Cora', msg: '整理使用者訪談摘要' }] },
-      { date: '06/06', items: [{ who: 'Steve', msg: '建立原型專案骨架' }] },
-    ],
-    breakdown: [
-      { who: 'Cora', val: 620, label: '620K', cost: '$2.48' },
-      { who: 'Steve', val: 360, label: '360K', cost: '$1.44' },
-    ],
-  },
-  Hive: {
-    state: 'On Track',
-    stateType: 'ok',
-    desc: 'Apis 公司官網 Landing Page 建置',
-    pct: 85,
-    done: 17,
-    total: 20,
-    weekDeliver: 8,
-    overdue: 0,
-    tokens: '3.4M',
-    cost: '$13.60',
-    trend: 8,
-    people: ['Steve', 'Meli', 'Cora'],
-    board: {
-      progress: [
-        { who: 'Steve', msg: '實作 Dashboard 互動原型', pri: 'high' },
-        { who: 'Meli', msg: '規劃下階段路線圖', pri: 'med' },
-      ],
-      review: [{ who: 'Cora', msg: '產出 Dashboard spec' }],
-      done: [
-        { who: 'Steve', msg: '動畫大升級上線', time: '06/07' },
-        { who: 'Steve', msg: '首頁瘦身重構', time: '06/09' },
-        { who: 'Steve', msg: '完成 Partners 分頁', time: '06/10' },
-        { who: 'Cora', msg: '完成 SEO 優化', time: '06/08' },
-        { who: 'Meli', msg: 'Coffee Time #1 內容', time: '06/05' },
-        { who: 'Meli', msg: 'Coffee Time #2 內容', time: '06/06' },
-      ],
-    },
-    timeline: [
-      { date: '06/12 · 今天', items: [{ who: 'Steve', msg: '實作 Dashboard 互動原型' }, { who: 'Cora', msg: '產出 Dashboard spec' }] },
-      { date: '06/11', items: [{ who: 'Meli', msg: '規劃下階段產品路線圖' }] },
-      { date: '06/10', items: [{ who: 'Steve', msg: '完成 Partners 分頁獨立' }] },
-      { date: '06/09', items: [{ who: 'Steve', msg: '首頁瘦身重構' }] },
-      { date: '06/08', items: [{ who: 'Cora', msg: '動畫互動評審 + SEO 優化' }] },
-      { date: '06/07', items: [{ who: 'Steve', msg: '動畫大升級上線' }] },
-      { date: '06/06', items: [{ who: 'Meli', msg: 'Coffee Time 內容企劃' }] },
-    ],
-    breakdown: [
-      { who: 'Steve', val: 1800, label: '1.8M', cost: '$7.20' },
-      { who: 'Meli', val: 1100, label: '1.1M', cost: '$4.40' },
-      { who: 'Cora', val: 500, label: '500K', cost: '$2.00' },
-    ],
-  },
+type HiveProject = HiveProjectMeta | HiveProjectBusiness
+
+type HiveData = {
+  generatedAt: string
+  employees: HiveEmployee[]
+  projects: HiveProject[]
+}
+
+const HIVE_STATUS_LABEL: Record<HiveStatus, string> = {
+  working: '執行中',
+  active: '在線',
+  idle: '待命',
+  offline: '下線',
+}
+
+// 即時資料狀態 → 沿用既有 dot/pill class（working=amber、active=green、idle/offline=灰）
+const HIVE_STATUS_DOT: Record<HiveStatus, string> = {
+  working: 'dot-working',
+  active: 'dot-active',
+  idle: 'dot-idle',
+  offline: 'dot-offline',
+}
+
+const POLL_MS = 15000
+
+function useHiveStatus(active: boolean) {
+  const [data, setData] = useState<HiveData | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  const [updatedAt, setUpdatedAt] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!active) return
+    let cancelled = false
+
+    const load = async () => {
+      try {
+        const res = await fetch('/api/hive-status', { cache: 'no-store' })
+        if (!res.ok) throw new Error(`HTTP ${res.status}`)
+        const json = (await res.json()) as HiveData
+        if (cancelled) return
+        setData(json)
+        setError(null)
+        setUpdatedAt(nowTime())
+      } catch (e) {
+        if (cancelled) return
+        setError(e instanceof Error ? e.message : '讀取失敗')
+      }
+    }
+
+    load()
+    const t = setInterval(load, POLL_MS)
+    return () => {
+      cancelled = true
+      clearInterval(t)
+    }
+  }, [active])
+
+  return { data, error, updatedAt }
 }
 
 /* ============================================================
@@ -288,44 +181,6 @@ function makeEntry(): LogEntry {
   return { id: ++logSeq, time: nowTime(), name: a.name, msg }
 }
 
-/* ============================================================
-   小型 icon（內聯 SVG）
-   ============================================================ */
-function IconArrow() {
-  return (
-    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M5 12h14M13 6l6 6-6 6" />
-    </svg>
-  )
-}
-function IconBack() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M19 12H5M11 18l-6-6 6-6" />
-    </svg>
-  )
-}
-function IconCheck() {
-  return (
-    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M20 6L9 17l-5-5" />
-    </svg>
-  )
-}
-function IconTrendDown() {
-  return (
-    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M12 5v14M19 12l-7 7-7-7" />
-    </svg>
-  )
-}
-function IconTrendUp() {
-  return (
-    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M12 19V5M5 12l7-7 7 7" />
-    </svg>
-  )
-}
 
 /* ============================================================
    登入 Modal
@@ -422,231 +277,6 @@ function handleTiltLeave(e: MouseEvent<HTMLDivElement>) {
   e.currentTarget.style.transform = ''
 }
 
-/* ============================================================
-   專案詳情視圖
-   ============================================================ */
-const PRI_COLOR: Record<string, string> = {
-  high: 'var(--honey-500)',
-  med: 'var(--status-beta)',
-  low: 'var(--status-idle)',
-  blocked: 'var(--status-blocked)',
-}
-
-function DetailTaskCard({ card, kind }: { card: BoardCard; kind: 'progress' | 'review' | 'done' }) {
-  if (kind === 'done') {
-    return (
-      <div className="tcard" style={{ ['--pc' as string]: 'var(--status-live)' }}>
-        <div className="tcard-who">
-          <span className="av-mini" style={{ background: AV_COLORS[card.who] }}>
-            {card.who[0]}
-          </span>
-          {card.who}
-        </div>
-        <div className="tcard-msg">{card.msg}</div>
-        <span className="tcard-time">
-          <span className="tcard-check">
-            <IconCheck />
-          </span>
-          {card.time}
-        </span>
-      </div>
-    )
-  }
-  const blk = card.pri === 'blocked'
-  return (
-    <div className="tcard" style={{ ['--pc' as string]: PRI_COLOR[card.pri ?? ''] ?? 'var(--honey-500)' }}>
-      <div className="tcard-who">
-        <span className="av-mini" style={{ background: AV_COLORS[card.who] }}>
-          {card.who[0]}
-        </span>
-        {card.who}
-        {blk && <span className="blk-tag">阻塞</span>}
-      </div>
-      <div className="tcard-msg">{card.msg}</div>
-    </div>
-  )
-}
-
-function ProjectDetailView({ name, leaving, onBack }: { name: string; leaving: boolean; onBack: () => void }) {
-  const d = PROJECT_DETAILS[name]
-  const ref = useRef<HTMLDivElement>(null)
-  const maxTk = Math.max(...d.breakdown.map((b) => b.val))
-
-  useEffect(() => {
-    window.scrollTo(0, 0)
-    const node = ref.current
-    if (!node) return
-    const bars = node.querySelectorAll<HTMLElement>('.tk-bar')
-    const id = requestAnimationFrame(() => {
-      bars.forEach((b) => {
-        b.style.width = b.dataset.w || '0'
-      })
-    })
-    return () => cancelAnimationFrame(id)
-  }, [name])
-
-  const colDef = [
-    { key: 'progress', label: '進行中', kind: 'progress' as const },
-    { key: 'review', label: '待審核', kind: 'review' as const },
-    { key: 'done', label: '已完成', kind: 'done' as const },
-  ]
-
-  return (
-    <div ref={ref} className={`proj-detail active${leaving ? ' leaving' : ''}`}>
-      <button className="detail-back" onClick={onBack}>
-        <IconBack />
-        返回專案列表
-      </button>
-
-      <div className="detail-head">
-        <div>
-          <div className="detail-title">{name}</div>
-          <div className="detail-badges">
-            <span className="detail-badge ok">
-              <span className="dot dot-active breathe" />
-              Active
-            </span>
-            <span className={`detail-badge ${d.stateType}`}>{d.state}</span>
-          </div>
-        </div>
-        <p className="detail-desc">{d.desc}</p>
-      </div>
-
-      <div className="detail-stats">
-        <div className="dstat">
-          <div className="dstat-label">完成度</div>
-          <div className="dstat-row">
-            <div className="ring" style={{ ['--pct' as string]: d.pct }}>
-              <span className="ring-num">{d.pct}%</span>
-            </div>
-            <div className="dstat-sub">
-              已完成 <b style={{ color: 'var(--text-primary)' }}>{d.done}</b> / {d.total} 項任務
-            </div>
-          </div>
-        </div>
-        <div className="dstat">
-          <div className="dstat-label">本週交付</div>
-          <div className="dstat-row">
-            <span className="dstat-big">{d.weekDeliver}</span>
-            <span style={{ color: 'var(--text-muted)', fontSize: 13 }}>項</span>
-          </div>
-          <div className="dstat-sub">
-            {d.overdue > 0 ? (
-              <>
-                逾期 <span className="bad">{d.overdue} 項</span>
-              </>
-            ) : (
-              <>
-                逾期 <b style={{ color: 'var(--text-primary)' }}>0 項</b>
-              </>
-            )}
-          </div>
-        </div>
-        <div className="dstat">
-          <div className="dstat-label">累積花費</div>
-          <div className="dstat-row">
-            <span className="dstat-big">{d.tokens}</span>
-            <span style={{ color: 'var(--text-muted)', fontSize: 13 }}>tokens</span>
-          </div>
-          <div className="dstat-sub">
-            約 <b style={{ color: 'var(--honey-400)' }}>{d.cost}</b>
-          </div>
-          {d.trend < 0 ? (
-            <span className="dstat-trend down">
-              <IconTrendDown />本週 {Math.abs(d.trend)}%
-            </span>
-          ) : d.trend > 0 ? (
-            <span className="dstat-trend up">
-              <IconTrendUp />本週 {d.trend}%
-            </span>
-          ) : (
-            <span className="dstat-trend" style={{ color: 'var(--text-muted)' }}>
-              本週持平
-            </span>
-          )}
-        </div>
-        <div className="dstat">
-          <div className="dstat-label">活躍員工</div>
-          <div className="dstat-row">
-            <span className="dstat-big">{d.people.length}</span>
-            <span style={{ color: 'var(--text-muted)', fontSize: 13 }}>人</span>
-          </div>
-          <div className="av-stack" style={{ marginTop: 12 }}>
-            {d.people.map((n) => (
-              <span key={n} className="av-mini" style={{ background: AV_COLORS[n] }}>
-                {n[0]}
-              </span>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      <div className="detail-section">
-        <div className="detail-sec-title">任務看板</div>
-        <div className="board">
-          {colDef.map((c) => {
-            const arr = d.board[c.key as keyof ProjectDetail['board']]
-            return (
-              <div key={c.key} className="board-col">
-                <div className="board-col-head">
-                  <span>{c.label}</span>
-                  <span className="cnt">{arr.length}</span>
-                </div>
-                <div className="board-cards">
-                  {arr.length ? (
-                    arr.map((t, i) => <DetailTaskCard key={i} card={t} kind={c.kind} />)
-                  ) : (
-                    <div className="board-empty">目前沒有項目</div>
-                  )}
-                </div>
-              </div>
-            )
-          })}
-        </div>
-      </div>
-
-      <div className="detail-section">
-        <div className="detail-sec-title">近 7 天時間軸</div>
-        <div className="timeline">
-          {d.timeline.map((day, i) => (
-            <div key={i} className="tl-day">
-              <span className="tl-node" />
-              <div className="tl-date">{day.date}</div>
-              {day.items.map((it, j) => (
-                <div key={j} className="tl-line">
-                  <span className="tl-who">{it.who}</span> · {it.msg}
-                </div>
-              ))}
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div className="detail-section">
-        <div className="detail-sec-title">花費明細 · Token 用量</div>
-        <div className="tk-chart">
-          {d.breakdown.map((b) => (
-            <div key={b.who} className="tk-row">
-              <span className="tk-name">
-                <span className="av-mini" style={{ background: AV_COLORS[b.who] }}>
-                  {b.who[0]}
-                </span>
-                {b.who}
-              </span>
-              <span className="tk-bar-track">
-                <span className="tk-bar" data-w={`${Math.round((b.val / maxTk) * 100)}%`} />
-              </span>
-              <span className="tk-val">
-                {b.label}
-                <span className="tk-cost">{b.cost}</span>
-              </span>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  )
-}
 
 /* ============================================================
    帳本（Cost / Token 財務）分頁
@@ -852,13 +482,185 @@ function CostPane({ active }: { active: boolean }) {
 }
 
 /* ============================================================
+   員工總覽（即時資料 /api/hive-status）
+   ============================================================ */
+function avBg(name: string): string {
+  return AV_COLORS[name] ?? 'linear-gradient(135deg,#8A847A,#6B655C)'
+}
+
+function EmployeeOverview({ data, error }: { data: HiveData | null; error: string | null }) {
+  if (!data) {
+    return (
+      <div className="cost-state">
+        {error ? `員工資料讀取失敗（${error}）— 稍後自動重試` : '員工即時狀態載入中…'}
+      </div>
+    )
+  }
+  return (
+    <div className="emp-grid">
+      {data.employees.map((e) => {
+        const calm = e.status === 'idle' || e.status === 'offline'
+        return (
+          <div key={e.profile} className="emp-card" onMouseMove={handleTiltMove} onMouseLeave={handleTiltLeave}>
+            <div className="emp-head">
+              <div className="emp-avatar" style={{ background: avBg(e.name) }}>
+                {e.name[0]}
+              </div>
+              <div>
+                <div className="emp-name">
+                  <span className={`dot ${HIVE_STATUS_DOT[e.status]}${!calm ? ' breathe' : ''}`} />
+                  {e.name}
+                </div>
+                <div className="emp-role">{e.role}</div>
+              </div>
+              <span className="emp-status-pill">
+                <span className={`dot ${HIVE_STATUS_DOT[e.status]}`} />
+                {HIVE_STATUS_LABEL[e.status]}
+              </span>
+            </div>
+            <div className="emp-model-row">
+              <span className="model-badge">{e.model}</span>
+            </div>
+            <div className="task-block">
+              <div className="tb-label">當前任務</div>
+              <div className={`task-item${e.currentTask ? '' : ' idle'}`}>
+                <span className="pri" />
+                <span>{e.currentTask ?? '待命中'}</span>
+              </div>
+            </div>
+            <div className="emp-foot">
+              <div className="chips">
+                {e.projects.length ? (
+                  e.projects.map((c) => (
+                    <span key={c} className="chip">
+                      {c}
+                    </span>
+                  ))
+                ) : (
+                  <span className="chip chip-muted">未指派專案</span>
+                )}
+              </div>
+            </div>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
+/* ============================================================
+   專案視角（即時資料 /api/hive-status）
+   HIVE = 公司本體 HERO；business = 事業專案卡
+   ============================================================ */
+function fmtRecentTime(ts: string): string {
+  const d = new Date(ts)
+  if (isNaN(d.getTime())) return ts
+  return `${pad(d.getMonth() + 1)}/${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`
+}
+
+function HiveHero({ p }: { p: HiveProjectMeta }) {
+  const m = p.metrics
+  const stats: { label: string; val: number }[] = [
+    { label: '員工數', val: m.employees },
+    { label: '在線', val: m.online },
+    { label: '活躍經驗', val: m.lessonsActive },
+    { label: '累積經驗', val: m.lessonsTotal },
+    { label: '決策', val: m.decisions },
+    { label: 'Retro', val: m.retros },
+    { label: '派工', val: m.tasksDispatched },
+    { label: '完成', val: m.tasksDone },
+  ]
+  return (
+    <div className="hive-hero">
+      <div className="hive-hero-head">
+        <span className="hive-hero-kicker">公司本體 · 自我優化</span>
+        <h2 className="hive-hero-title display">{p.name}</h2>
+        <p className="hive-hero-tagline">{p.tagline}</p>
+        <p className="hive-hero-note">{p.note}</p>
+      </div>
+      <div className="hive-hero-metrics">
+        {stats.map((s) => (
+          <div key={s.label} className="hive-metric">
+            <span className="hive-metric-val tnum">{s.val}</span>
+            <span className="hive-metric-label">{s.label}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function BusinessProjectCard({ p }: { p: HiveProjectBusiness }) {
+  const recent = p.recent.slice(0, 5)
+  return (
+    <div className="proj-card biz-card">
+      <div className="proj-head">
+        <span className="proj-title">{p.name}</span>
+      </div>
+      <div className="biz-stats">
+        <div className="biz-stat">
+          <span className="biz-stat-val tnum">{p.open}</span>
+          <span className="biz-stat-label">進行中</span>
+        </div>
+        <div className="biz-stat">
+          <span className="biz-stat-val tnum">{p.done}</span>
+          <span className="biz-stat-label">已完成</span>
+        </div>
+        <div className="biz-stat">
+          <span className="biz-stat-val tnum">{p.assigned}</span>
+          <span className="biz-stat-label">總派工</span>
+        </div>
+      </div>
+      <div className="biz-recent">
+        <div className="tb-label">最近活動</div>
+        {recent.length ? (
+          recent.map((r, i) => (
+            <div key={i} className={`biz-evt biz-evt-${r.action === 'task_completed' ? 'done' : 'assigned'}`}>
+              <span className="biz-evt-dot" />
+              <span className="biz-evt-note">{r.note}</span>
+              <span className="biz-evt-time tnum">{fmtRecentTime(r.ts)}</span>
+            </div>
+          ))
+        ) : (
+          <div className="board-empty">尚無活動</div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+function ProjectView({ data, error }: { data: HiveData | null; error: string | null }) {
+  if (!data) {
+    return (
+      <div className="cost-state">
+        {error ? `專案資料讀取失敗（${error}）— 稍後自動重試` : '專案即時狀態載入中…'}
+      </div>
+    )
+  }
+  const hive = data.projects.find((p): p is HiveProjectMeta => p.kind === 'meta')
+  const biz = data.projects.filter((p): p is HiveProjectBusiness => p.kind === 'business')
+  return (
+    <div className="proj-view">
+      {hive && <HiveHero p={hive} />}
+      {biz.length > 0 && <div className="biz-section-title">事業專案</div>}
+      <div className="proj-list">
+        {biz.map((p) => (
+          <BusinessProjectCard key={p.key} p={p} />
+        ))}
+      </div>
+    </div>
+  )
+}
+
+/* ============================================================
    Dashboard 主畫面
    ============================================================ */
 function Dashboard({ onLogout }: { onLogout: () => void }) {
   const [tab, setTab] = useState<'emp' | 'proj' | 'cost'>('emp')
-  const [detail, setDetail] = useState<string | null>(null)
-  const [leaving, setLeaving] = useState(false)
   const [log, setLog] = useState<LogEntry[]>([])
+
+  // 員工總覽 + 專案視角共用的即時治理資料，每 15 秒輪詢
+  const { data: hive, error: hiveError, updatedAt: hiveUpdatedAt } = useHiveStatus(true)
 
   const empTabRef = useRef<HTMLButtonElement>(null)
   const projTabRef = useRef<HTMLButtonElement>(null)
@@ -897,25 +699,6 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
 
   const switchTab = (next: 'emp' | 'proj' | 'cost') => {
     setTab(next)
-    if (next !== 'proj') {
-      // 離開專案視角時直接收起詳情（無動畫）
-      setDetail(null)
-      setLeaving(false)
-    }
-  }
-
-  const openDetail = (name: string) => {
-    if (!PROJECT_DETAILS[name]) return
-    setLeaving(false)
-    setDetail(name)
-  }
-
-  const closeDetail = () => {
-    setLeaving(true)
-    setTimeout(() => {
-      setDetail(null)
-      setLeaving(false)
-    }, 300)
   }
 
   return (
@@ -929,20 +712,24 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
         </div>
         <div className="summary-bar">
           <span className="seg">
-            <span className="dot dot-active breathe" />6 Active
+            <span className="dot dot-working breathe" />
+            {hive ? hive.employees.filter((e) => e.status === 'working').length : 0} 執行中
           </span>
           <span className="div" />
           <span className="seg">
-            <span className="dot dot-idle" />2 Idle
+            <span className="dot dot-active" />
+            {hive ? hive.employees.filter((e) => e.status === 'active').length : 0} 在線
           </span>
           <span className="div" />
           <span className="seg">
-            <span className="dot dot-incubating" />5 Incubating
+            <span className="dot dot-idle" />
+            {hive ? hive.employees.filter((e) => e.status === 'idle' || e.status === 'offline').length : 0} 待命
           </span>
         </div>
         <div className="dash-top-right">
-          <span className="last-update">
-            最後更新 <span className="tnum">剛剛</span>
+          <span className="last-update live-pill">
+            <span className="dot dot-active breathe" />
+            即時 · 更新於 <span className="tnum">{hiveUpdatedAt ?? '—'}</span>
           </span>
           <button className="btn-logout" onClick={onLogout}>
             登出
@@ -965,112 +752,14 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
             </button>
           </div>
 
-          {/* Tab 1：員工總覽 */}
+          {/* Tab 1：員工總覽（即時資料） */}
           <section className={`pane${tab === 'emp' ? ' active' : ''}`}>
-            <div className="emp-grid">
-              {EMPLOYEES.map((e) => {
-                const isIdle = e.status === 'idle'
-                return (
-                  <div key={e.name} className="emp-card" onMouseMove={handleTiltMove} onMouseLeave={handleTiltLeave}>
-                    <div className="emp-head">
-                      <div className="emp-avatar" style={{ background: AV_COLORS[e.name] }}>
-                        {e.name[0]}
-                      </div>
-                      <div>
-                        <div className="emp-name">
-                          <span className={`dot dot-${e.status}${e.status !== 'idle' ? ' breathe' : ''}`} />
-                          {e.name}
-                        </div>
-                        <div className="emp-role">{e.role}</div>
-                      </div>
-                      <span className="emp-status-pill">
-                        <span className={`dot dot-${e.status}`} />
-                        {STATUS_LABEL[e.status]}
-                      </span>
-                    </div>
-                    <div className="task-block">
-                      <div className="tb-label">{isIdle ? '最近活動' : '當前任務'}</div>
-                      {e.tasks.map((t, i) => (
-                        <div key={i} className={`task-item${isIdle ? ' idle' : ''}`}>
-                          <span className="pri" />
-                          <span>{t}</span>
-                        </div>
-                      ))}
-                    </div>
-                    <div className="emp-foot">
-                      <div className="chips">
-                        {e.chips.map((c) => (
-                          <span key={c} className="chip">
-                            {c}
-                          </span>
-                        ))}
-                      </div>
-                      <span className="emp-time">{e.time}</span>
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
+            <EmployeeOverview data={hive} error={hiveError} />
           </section>
 
-          {/* Tab 2：專案視角 */}
+          {/* Tab 2：專案視角（即時資料） */}
           <section className={`pane${tab === 'proj' ? ' active' : ''}`}>
-            <div className={`proj-list${detail ? ' hidden' : ''}`}>
-              {PROJECTS.map((p) => (
-                <div
-                  key={p.name}
-                  className="proj-card"
-                  role="button"
-                  tabIndex={0}
-                  aria-label={`查看 ${p.name} 專案詳情`}
-                  onClick={() => openDetail(p.name)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                      e.preventDefault()
-                      openDetail(p.name)
-                    }
-                  }}
-                >
-                  <div className="proj-head">
-                    <span className="proj-title">{p.name}</span>
-                    {p.sub && <span className="proj-sub">{p.sub}</span>}
-                    <span className="proj-enter">
-                      查看詳情
-                      <IconArrow />
-                    </span>
-                  </div>
-                  <div className="proj-avatars">
-                    {p.people.map((n) => (
-                      <span key={n} className="av-person">
-                        <span className="av-circle" style={{ background: AV_COLORS[n] }}>
-                          {n[0]}
-                        </span>
-                        <span>{n}</span>
-                      </span>
-                    ))}
-                  </div>
-                  <div className="proj-tasks">
-                    {p.tasks.map((t, i) => (
-                      <div key={i} className="ptask">
-                        <span className="pwho">{t.who}</span>
-                        <span className="pstate">
-                          <span className={`dot dot-${t.state}`} />
-                          {STATUS_LABEL[t.state]}
-                        </span>
-                        <span className="pmsg">{t.msg}</span>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="proj-foot">
-                    <span>
-                      今日 <span className="stat-num">{p.today}</span> 筆 · 本週 <span className="stat-num">{p.week}</span> 筆
-                    </span>
-                    <span>最後活動 {p.last}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-            {detail && <ProjectDetailView name={detail} leaving={leaving} onBack={closeDetail} />}
+            <ProjectView data={hive} error={hiveError} />
           </section>
 
           {/* Tab 3：帳本 */}
