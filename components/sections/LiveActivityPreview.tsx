@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { AnimatePresence, motion } from 'framer-motion'
-import { EASE } from '@/lib/motion'
+import { EASE, fadeUp } from '@/lib/motion'
 import { Reveal } from '@/components/ui/Reveal'
 import { SectionHeading } from '@/components/ui/SectionHeading'
 import { BlinkCursor } from '@/components/ui/BlinkCursor'
@@ -52,26 +52,45 @@ export function LiveActivityPreview() {
   }, [])
 
   return (
-    <section id="live" className="relative border-t border-comb-line py-28">
+    // whileInView：捲動進入視窗 10% 才觸發，once 避免重複播放
+    <motion.section
+      id="live"
+      className="relative border-t border-comb-line py-28"
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true, amount: 0.1 }}
+      variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.12 } } }}
+    >
       <div className="mx-auto w-full max-w-5xl px-6">
-        <SectionHeading
-          eyebrow="Live Activity"
-          title="不是宣稱，是證據。"
-          description={
-            <>
-              這是蜂巢即時營運流的一隅。每一行都是以真實任務為藍本的模擬動態 —
-              展示 AI 員工們日常處理的工作類型與節奏。
-            </>
-          }
-        />
+        <motion.div variants={fadeUp}>
+          <SectionHeading
+            eyebrow="Live Activity"
+            title="不是宣稱，是證據。"
+            description={
+              <>
+                這是蜂巢即時營運流的一隅。每一行都是以真實任務為藍本的模擬動態 —
+                展示 AI 員工們日常處理的工作類型與節奏。
+              </>
+            }
+          />
+        </motion.div>
 
         {/* 終端機風格的即時活動流（精簡） */}
         <Reveal
           className="mt-8 overflow-hidden rounded-2xl border border-comb-line bg-bg-raised/60"
           delay={0.1}
         >
+          {/* Terminal header：加入 macOS 風格圓點讓終端機感更到位 */}
           <div className="flex items-center justify-between border-b border-comb-line/60 px-5 py-3 font-mono text-xs text-text-muted">
-            <span>hive://activity-stream</span>
+            <div className="flex items-center gap-3">
+              {/* mock 視窗圓點：紅/黃/綠，純裝飾 */}
+              <div className="flex items-center gap-1.5" aria-hidden>
+                <span className="inline-block h-3 w-3 rounded-full bg-red-500/60" />
+                <span className="inline-block h-3 w-3 rounded-full bg-yellow-500/60" />
+                <span className="inline-block h-3 w-3 rounded-full bg-green-500/60" />
+              </div>
+              <span className="text-text-muted/70">hive://activity-stream</span>
+            </div>
             <span className="flex items-center gap-2">
               <span className="hive-breathe inline-block h-1.5 w-1.5 rounded-full bg-status-live" />
               <span className="inline-flex items-center">
@@ -91,11 +110,12 @@ export function LiveActivityPreview() {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, transition: { duration: 0.4, ease: EASE } }}
                   transition={{ duration: 0.5, ease: EASE }}
-                  className="group relative overflow-hidden border-b border-comb-line/50 px-4 py-3.5 font-mono text-[13px] transition-colors duration-300 last:border-b-0 hover:bg-honey-500/[0.045] sm:px-5 sm:text-sm"
+                  className="group relative overflow-hidden border-b border-comb-line/50 px-4 py-3.5 font-mono text-[13px] transition-colors duration-300 last:border-b-0 hover:bg-honey-500/[0.06] sm:px-5 sm:text-sm"
                 >
+                  {/* 左側彩色 bar：加寬至 4px，視覺強化狀態感 */}
                   <motion.span
                     aria-hidden
-                    className={`absolute left-0 top-0 h-full w-[3px] origin-left ${DOT[entry.stage]}`}
+                    className={`absolute left-0 top-0 h-full w-1 origin-left ${DOT[entry.stage]}`}
                     initial={{ scaleX: 0, opacity: 0 }}
                     animate={{ scaleX: 1, opacity: 1 }}
                     transition={{ duration: 0.5, ease: EASE, delay: 0.05 }}
@@ -121,10 +141,10 @@ export function LiveActivityPreview() {
             </AnimatePresence>
           </div>
 
-          {/* 頁尾：導向完整動態頁 */}
+          {/* 頁尾：導向完整動態頁，加底色讓層次分隔清楚 */}
           <Link
             href="/activity"
-            className="group flex items-center justify-between border-t border-comb-line/60 px-5 py-3.5 font-mono text-xs text-text-muted transition-colors duration-300 hover:bg-bg-overlay/50"
+            className="group flex items-center justify-between border-t border-comb-line/60 bg-bg-raised/30 px-5 py-3.5 font-mono text-xs text-text-muted transition-colors duration-300 hover:bg-bg-overlay/50"
           >
             <span>{ACTIVE.length} 位員工在線 · 持續滾動中</span>
             <span className="inline-flex items-center gap-1.5 text-honey-400">
@@ -136,6 +156,6 @@ export function LiveActivityPreview() {
           </Link>
         </Reveal>
       </div>
-    </section>
+    </motion.section>
   )
 }
