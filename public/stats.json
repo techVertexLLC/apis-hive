@@ -1,0 +1,84 @@
+{
+  "generatedAt": "2026-06-13T22:30:03+08:00",
+  "totals": {
+    "tokens": 2841447
+  },
+  "today": {
+    "tokens": 37984
+  },
+  "byProject": [
+    {
+      "name": "未歸戶（對話/巡檢/雜項）",
+      "tokens": 2607340
+    },
+    {
+      "name": "K1 LED",
+      "tokens": 167770
+    },
+    {
+      "name": "Apis 治理",
+      "tokens": 55919
+    },
+    {
+      "name": "Hive 官網",
+      "tokens": 10418
+    }
+  ],
+  "byAgent": [
+    {
+      "name": "Meli",
+      "tokens": 2016561
+    },
+    {
+      "name": "Apple",
+      "tokens": 302115
+    },
+    {
+      "name": "Cora",
+      "tokens": 271160
+    },
+    {
+      "name": "Steve",
+      "tokens": 240168
+    },
+    {
+      "name": "Iris",
+      "tokens": 7436
+    },
+    {
+      "name": "Penny",
+      "tokens": 4007
+    }
+  ],
+  "byProvider": [
+    {
+      "name": "Anthropic",
+      "tokens": 2760827
+    },
+    {
+      "name": "Bedrock",
+      "tokens": 80620
+    }
+  ],
+  "byModel": [
+    {
+      "name": "opus",
+      "tokens": 2533681
+    },
+    {
+      "name": "sonnet",
+      "tokens": 307766
+    }
+  ],
+  "tasksByProject": [
+    {
+      "project": "K1 LED",
+      "tasks": 15
+    },
+    {
+      "project": "早期·未分類",
+      "tasks": 9
+    }
+  ],
+  "note": "公開版只顯示活躍度(token/任務數);金額見私密 dashboard。"
+}

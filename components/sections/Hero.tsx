@@ -88,6 +88,13 @@ const lineChild: Variants = {
   visible: { y: '0%', transition: { duration: 0.9, ease: EASE } },
 }
 
+// 三個核心數字統計（視覺層級：主標前的重量感錨點）
+const STATS = [
+  { value: '2', label: '位人類' },
+  { value: '13', label: '位 AI' },
+  { value: '0', label: '停機' },
+]
+
 export function Hero() {
   const reduce = useReducedMotion()
 
@@ -113,7 +120,9 @@ export function Hero() {
   return (
     <section
       onMouseMove={handleMove}
-      className="relative flex min-h-screen items-center overflow-hidden"
+      // min-h-[100dvh]：使用 dvh 讓手機瀏覽器 URL 列縮起後頁面自然填滿視窗
+      // pb-safe：iOS 主頁橫條安全區，避免 CTA 被遮住
+      className="relative flex min-h-[100dvh] items-center overflow-hidden pb-[env(safe-area-inset-bottom)]"
     >
       {/* 蜂格紋動態背景 — 最底層細密蜂巢紋理，緩慢呼吸 + 滑鼠 parallax */}
       <motion.div
@@ -134,14 +143,16 @@ export function Hero() {
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-bg-base/40 via-bg-base/10 to-bg-base" />
 
       <motion.div
-        className="relative mx-auto w-full max-w-5xl px-6 py-24 sm:py-32"
+        // py-20 手機版縮小上下 padding，確保 CTA 不被推到折疊線下
+        className="relative mx-auto w-full max-w-5xl px-6 py-20 sm:py-32"
         variants={staggerContainer}
         initial="hidden"
         animate="visible"
       >
+        {/* 狀態 badge */}
         <motion.div
           variants={fadeUp}
-          className="mb-8 inline-flex items-center gap-2.5 rounded-full border border-comb-line bg-bg-raised/60 px-4 py-1.5 backdrop-blur-sm"
+          className="mb-6 inline-flex items-center gap-2.5 rounded-full border border-comb-line bg-bg-raised/60 px-4 py-1.5 backdrop-blur-sm"
         >
           <span className="hive-breathe inline-block h-2 w-2 rounded-full bg-status-live" />
           <span className="font-mono text-xs tracking-wide text-text-secondary">
@@ -149,10 +160,30 @@ export function Hero() {
           </span>
         </motion.div>
 
+        {/* 核心數字統計 —— 視覺錨點，讓閱讀者在主標前先感受規模 */}
+        <motion.div
+          variants={fadeUp}
+          className="mb-6 flex items-end gap-6 sm:gap-12"
+        >
+          {STATS.map((stat) => (
+            <div key={stat.label} className="flex flex-col">
+              {/* 數字：展示重量，用品牌琥珀色突出 */}
+              <span className="font-display text-3xl font-semibold leading-none text-honey-500 sm:text-4xl">
+                {stat.value}
+              </span>
+              {/* 標籤：降調對比，讓數字更跳 */}
+              <span className="mt-1 font-mono text-[10px] tracking-widest text-text-muted sm:text-xs">
+                {stat.label}
+              </span>
+            </div>
+          ))}
+        </motion.div>
+
         {/* 主標 —— 逐行遮罩揭幕（reduced-motion 退化為整段 fade-up） */}
         <motion.h1
           variants={reduce ? fadeUp : lineContainer}
-          className="font-display text-[2.5rem] font-semibold leading-[1.08] tracking-tight text-text-primary sm:text-7xl sm:leading-[1.05]"
+          // 手機縮為 2.2rem 讓整塊文字視口內站穩，sm 保持 7xl 氣勢
+          className="font-display text-[2.2rem] font-semibold leading-[1.08] tracking-tight text-text-primary sm:text-7xl sm:leading-[1.05]"
         >
           <span className="block overflow-hidden pb-[0.05em]">
             <motion.span variants={reduce ? undefined : lineChild} className="block">
@@ -167,20 +198,27 @@ export function Hero() {
         </motion.h1>
 
         <motion.div variants={fadeUp} className="mt-6 max-w-2xl sm:mt-7">
-          <p className="text-base leading-[1.8] text-text-secondary sm:text-xl">
+          {/* 說明文字：手機縮為 sm，避免行數過多壓縮 CTA 空間 */}
+          <p className="text-sm leading-[1.8] text-text-secondary sm:text-xl">
             Apis 是一家 AI-native 公司。兩位人類定方向，一群 AI
             員工把事情做完 — 沒有打卡、沒有交接、沒有熄燈的時刻，只有一座持續運轉的蜂巢。
           </p>
-          <p className="mt-5 font-mono text-sm tracking-[0.28em] text-text-muted sm:text-base">
+          {/* mono stat 標語：手機縮小，保持呼吸感 */}
+          <p className="mt-4 font-mono text-xs tracking-[0.28em] text-text-muted sm:mt-5 sm:text-sm">
             2 humans · 13 AI · 0 downtime
           </p>
         </motion.div>
 
-        <motion.div variants={fadeUp} className="mt-10 flex flex-wrap items-center gap-4">
+        {/* CTA 按鈕組：手機疊排（flex-col），確保主 CTA 在折疊線以內 */}
+        <motion.div
+          variants={fadeUp}
+          className="mt-8 flex flex-col items-stretch gap-3 sm:mt-10 sm:flex-row sm:items-center sm:gap-4"
+        >
           <Magnetic strength={0.4}>
             <a
               href="#roster"
-              className="cta-shimmer group inline-flex items-center gap-2 rounded-full bg-honey-500 px-6 py-3 text-sm font-semibold text-bg-base shadow-lg shadow-honey-500/25 transition-all duration-300 hover:bg-honey-400 hover:shadow-xl hover:shadow-honey-500/40 active:scale-[0.98]"
+              // w-full 手機全寬，sm 恢復自然寬度
+              className="cta-shimmer group inline-flex w-full items-center justify-center gap-2 rounded-full bg-honey-500 px-6 py-3.5 text-sm font-semibold text-bg-base shadow-lg shadow-honey-500/25 transition-all duration-300 hover:bg-honey-400 hover:shadow-xl hover:shadow-honey-500/40 active:scale-[0.98] sm:w-auto sm:py-3"
             >
               <span className="relative z-[2]">進入 Hive</span>
               <span className="relative z-[2] transition-transform duration-300 group-hover:translate-x-1">
@@ -191,7 +229,7 @@ export function Hero() {
           <Magnetic strength={0.3}>
             <a
               href="#live"
-              className="inline-flex items-center gap-2 rounded-full border border-comb-line bg-bg-raised/40 px-6 py-3 text-sm font-medium text-text-primary backdrop-blur-sm transition-all duration-300 hover:border-honey-500/40 hover:bg-bg-overlay active:scale-[0.98]"
+              className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-comb-line bg-bg-raised/40 px-6 py-3.5 text-sm font-medium text-text-primary backdrop-blur-sm transition-all duration-300 hover:border-honey-500/40 hover:bg-bg-overlay active:scale-[0.98] sm:w-auto sm:py-3"
             >
               看他們正在做什麼
             </a>
