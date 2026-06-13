@@ -348,6 +348,16 @@ function LoginModal({ onSuccess }: { onSuccess: () => void }) {
       } catch {
         /* sessionStorage 不可用時仍允許本次登入 */
       }
+      // 同步向 /api/dash-login 種 cookie（dash_auth），讓「帳本」分頁能取 /api/metrics
+      try {
+        void fetch('/api/dash-login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ password: value }),
+        }).catch(() => {})
+      } catch {
+        /* 種 cookie 失敗不阻擋登入；帳本分頁屆時會顯示錯誤狀態 */
+      }
       onSuccess()
     } else {
       setError(true)
@@ -639,21 +649,225 @@ function ProjectDetailView({ name, leaving, onBack }: { name: string; leaving: b
 }
 
 /* ============================================================
+   帳本（Cost / Token 財務）分頁
+   資料來自 /api/metrics（驗 dash_auth cookie，回 metrics-full.json）
+   ============================================================ */
+type CostRow = { name: string; tokens: number; costUsd: number; costTwd: number }
+type CostLedgerRow = CostRow & { tasks?: number }
+type CostTaskRow = { project: string; tasks: number }
+type CostTotals = { tokens: number; costUsd: number; costTwd: number }
+type CostData = {
+  totals?: CostTotals
+  today?: CostTotals
+  byProjectLedger?: CostLedgerRow[]
+  byProject?: CostRow[]
+  byAgent?: CostRow[]
+  byProvider?: CostRow[]
+  byModel?: CostRow[]
+  tasksByProject?: CostTaskRow[]
+  note?: string
+}
+
+const fmtInt = (n: number | undefined) =>
+  typeof n === 'number' && isFinite(n) ? Math.round(n).toLocaleString('en-US') : '—'
+const fmtUsd = (n: number | undefined) =>
+  typeof n === 'number' && isFinite(n) ? '$' + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '—'
+const fmtTwd = (n: number | undefined) =>
+  typeof n === 'number' && isFinite(n) ? 'NT$' + Math.round(n).toLocaleString('en-US') : '—'
+
+function CostBars({ rows }: { rows: CostRow[] }) {
+  const max = rows.reduce((m, r) => Math.max(m, r.tokens || 0), 0) || 1
+  return (
+    <div className="cost-bars">
+      {rows.map((r) => (
+        <div key={r.name} className="cost-bar-row">
+          <span className="cost-bar-name" title={r.name}>{r.name}</span>
+          <span className="cost-bar-track">
+            <span className="cost-bar-fill" style={{ width: `${Math.max(2, ((r.tokens || 0) / max) * 100)}%` }} />
+          </span>
+          <span className="cost-bar-tok num">{fmtInt(r.tokens)}</span>
+          <span className="cost-bar-usd num">{fmtUsd(r.costUsd)}</span>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+function CostPane({ active }: { active: boolean }) {
+  const [data, setData] = useState<CostData | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const loadedRef = useRef(false)
+
+  useEffect(() => {
+    if (!active || loadedRef.current) return
+    loadedRef.current = true
+    let cancelled = false
+    ;(async () => {
+      setLoading(true)
+      setError(null)
+      try {
+        const res = await fetch('/api/metrics', { cache: 'no-store' })
+        if (!res.ok) throw new Error(`HTTP ${res.status}`)
+        const json = (await res.json()) as CostData
+        if (!cancelled) setData(json)
+      } catch (e) {
+        if (!cancelled) {
+          loadedRef.current = false // 允許下次進入分頁時重試
+          setError(e instanceof Error ? e.message : '讀取失敗')
+        }
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [active])
+
+  if (loading && !data) {
+    return <div className="cost-state">帳本資料載入中…</div>
+  }
+  if (error && !data) {
+    return <div className="cost-state cost-state-err">帳本資料讀取失敗（{error}）— 請重新登入或稍後再試</div>
+  }
+  if (!data) {
+    return <div className="cost-state">尚無帳本資料</div>
+  }
+
+  const ledger = data.byProjectLedger ?? []
+  const byProject = data.byProject ?? []
+  const byAgent = data.byAgent ?? []
+  const byProvider = data.byProvider ?? []
+  const byModel = data.byModel ?? []
+  const tasks = data.tasksByProject ?? []
+
+  return (
+    <div className="cost-wrap">
+      {/* KPI 卡 */}
+      <div className="cost-kpis">
+        <div className="cost-kpi">
+          <span className="cost-kpi-label">累計 Tokens</span>
+          <span className="cost-kpi-val num">{fmtInt(data.totals?.tokens)}</span>
+        </div>
+        <div className="cost-kpi">
+          <span className="cost-kpi-label">累計成本</span>
+          <span className="cost-kpi-val num">{fmtUsd(data.totals?.costUsd)}</span>
+          <span className="cost-kpi-sub num">{fmtTwd(data.totals?.costTwd)}</span>
+        </div>
+        <div className="cost-kpi">
+          <span className="cost-kpi-label">今日 Tokens</span>
+          <span className="cost-kpi-val num">{fmtInt(data.today?.tokens)}</span>
+        </div>
+        <div className="cost-kpi">
+          <span className="cost-kpi-label">今日成本</span>
+          <span className="cost-kpi-val num">{fmtUsd(data.today?.costUsd)}</span>
+          <span className="cost-kpi-sub num">{fmtTwd(data.today?.costTwd)}</span>
+        </div>
+      </div>
+
+      <div className="cost-cols">
+        {/* 派工帳本（較準） */}
+        <div className="cost-card">
+          <div className="cost-card-head">
+            <span className="cost-card-title">派工帳本</span>
+            <span className="cost-card-tag">較準 · 往後累積</span>
+          </div>
+          {ledger.length === 0 ? (
+            <div className="cost-empty">派工帳本累積中，完工後自動歸戶</div>
+          ) : (
+            <div className="cost-ledger">
+              {ledger.map((r) => (
+                <div key={r.name} className="cost-ledger-row">
+                  <span className="cost-ledger-name" title={r.name}>{r.name}</span>
+                  {typeof r.tasks === 'number' && <span className="cost-ledger-tasks num">{r.tasks} 派工</span>}
+                  <span className="cost-ledger-tok num">{fmtInt(r.tokens)}</span>
+                  <span className="cost-ledger-usd num">{fmtUsd(r.costUsd)}</span>
+                  <span className="cost-ledger-twd num">{fmtTwd(r.costTwd)}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* byProject（cwd 粗估） */}
+        <div className="cost-card">
+          <div className="cost-card-head">
+            <span className="cost-card-title">專案成本</span>
+            <span className="cost-card-tag">cwd 粗估</span>
+          </div>
+          {byProject.length === 0 ? (
+            <div className="cost-empty">尚無資料</div>
+          ) : (
+            <div className="cost-ledger">
+              {byProject.map((r) => (
+                <div key={r.name} className="cost-ledger-row">
+                  <span className="cost-ledger-name" title={r.name}>{r.name}</span>
+                  <span className="cost-ledger-tok num">{fmtInt(r.tokens)}</span>
+                  <span className="cost-ledger-usd num">{fmtUsd(r.costUsd)}</span>
+                  <span className="cost-ledger-twd num">{fmtTwd(r.costTwd)}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="cost-cols">
+        <div className="cost-card">
+          <div className="cost-card-head"><span className="cost-card-title">依 Agent</span></div>
+          {byAgent.length === 0 ? <div className="cost-empty">尚無資料</div> : <CostBars rows={byAgent} />}
+        </div>
+        <div className="cost-card">
+          <div className="cost-card-head"><span className="cost-card-title">依 Provider</span></div>
+          {byProvider.length === 0 ? <div className="cost-empty">尚無資料</div> : <CostBars rows={byProvider} />}
+        </div>
+      </div>
+
+      <div className="cost-cols">
+        <div className="cost-card">
+          <div className="cost-card-head"><span className="cost-card-title">依 Model</span></div>
+          {byModel.length === 0 ? <div className="cost-empty">尚無資料</div> : <CostBars rows={byModel} />}
+        </div>
+        <div className="cost-card">
+          <div className="cost-card-head"><span className="cost-card-title">各專案派工數</span></div>
+          {tasks.length === 0 ? (
+            <div className="cost-empty">尚無派工</div>
+          ) : (
+            <div className="cost-tasks">
+              {tasks.map((t) => (
+                <div key={t.project} className="cost-task-row">
+                  <span className="cost-task-name" title={t.project}>{t.project}</span>
+                  <span className="cost-task-num num">{t.tasks}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {data.note && <p className="cost-note">{data.note}</p>}
+    </div>
+  )
+}
+
+/* ============================================================
    Dashboard 主畫面
    ============================================================ */
 function Dashboard({ onLogout }: { onLogout: () => void }) {
-  const [tab, setTab] = useState<'emp' | 'proj'>('emp')
+  const [tab, setTab] = useState<'emp' | 'proj' | 'cost'>('emp')
   const [detail, setDetail] = useState<string | null>(null)
   const [leaving, setLeaving] = useState(false)
   const [log, setLog] = useState<LogEntry[]>([])
 
   const empTabRef = useRef<HTMLButtonElement>(null)
   const projTabRef = useRef<HTMLButtonElement>(null)
+  const costTabRef = useRef<HTMLButtonElement>(null)
   const indicatorRef = useRef<HTMLDivElement>(null)
 
   // sliding indicator 定位
   const positionIndicator = useCallback(() => {
-    const el = tab === 'emp' ? empTabRef.current : projTabRef.current
+    const el = tab === 'emp' ? empTabRef.current : tab === 'proj' ? projTabRef.current : costTabRef.current
     const ind = indicatorRef.current
     if (!el || !ind) return
     ind.style.width = el.offsetWidth + 'px'
@@ -681,7 +895,7 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
     return () => clearInterval(t)
   }, [])
 
-  const switchTab = (next: 'emp' | 'proj') => {
+  const switchTab = (next: 'emp' | 'proj' | 'cost') => {
     setTab(next)
     if (next !== 'proj') {
       // 離開專案視角時直接收起詳情（無動畫）
@@ -745,6 +959,9 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
             </button>
             <button ref={projTabRef} className={`tab${tab === 'proj' ? ' active' : ''}`} onClick={() => switchTab('proj')}>
               專案視角
+            </button>
+            <button ref={costTabRef} className={`tab${tab === 'cost' ? ' active' : ''}`} onClick={() => switchTab('cost')}>
+              帳本
             </button>
           </div>
 
@@ -854,6 +1071,11 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
               ))}
             </div>
             {detail && <ProjectDetailView name={detail} leaving={leaving} onBack={closeDetail} />}
+          </section>
+
+          {/* Tab 3：帳本 */}
+          <section className={`pane${tab === 'cost' ? ' active' : ''}`}>
+            <CostPane active={tab === 'cost'} />
           </section>
         </main>
 

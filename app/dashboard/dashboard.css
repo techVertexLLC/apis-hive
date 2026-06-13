@@ -1206,3 +1206,167 @@
   .hive-dash-root .emp-grid { grid-template-columns: 1fr; }
   .hive-dash-root .brand span.full { display: none; }
 }
+
+/* ============================================================
+   Tab 3：帳本（Cost / Token）— 嚴格附加，沿用暖黑+琥珀+JetBrains Mono
+   ============================================================ */
+.hive-dash-root .cost-wrap { display: flex; flex-direction: column; gap: 18px; }
+.hive-dash-root .cost-state {
+  padding: 40px 20px;
+  text-align: center;
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: 14px;
+}
+.hive-dash-root .cost-state-err { color: var(--status-blocked); }
+.hive-dash-root .cost-wrap .num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+
+/* KPI 卡 */
+.hive-dash-root .cost-kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 14px;
+}
+.hive-dash-root .cost-kpi {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  border: 1px solid var(--comb-line);
+  background: var(--bg-raised);
+  border-radius: 14px;
+  padding: 18px 20px;
+}
+.hive-dash-root .cost-kpi-label {
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+}
+.hive-dash-root .cost-kpi-val {
+  font-size: 26px;
+  font-weight: 600;
+  color: var(--honey-500);
+  line-height: 1.1;
+}
+.hive-dash-root .cost-kpi-sub { font-size: 13px; color: var(--text-secondary); }
+
+/* 兩欄卡片 */
+.hive-dash-root .cost-cols {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 18px;
+}
+.hive-dash-root .cost-card {
+  border: 1px solid var(--comb-line);
+  background: var(--bg-raised);
+  border-radius: 16px;
+  padding: 18px 20px;
+}
+.hive-dash-root .cost-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+.hive-dash-root .cost-card-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+.hive-dash-root .cost-card-tag {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--honey-400);
+  border: 1px solid var(--comb-line);
+  border-radius: 999px;
+  padding: 2px 10px;
+}
+.hive-dash-root .cost-empty {
+  padding: 20px 4px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+/* ledger 列表 */
+.hive-dash-root .cost-ledger { display: flex; flex-direction: column; gap: 2px; }
+.hive-dash-root .cost-ledger-row {
+  display: grid;
+  grid-template-columns: 1fr auto auto auto;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 6px;
+  border-radius: 8px;
+  font-size: 13px;
+}
+.hive-dash-root .cost-ledger-row:hover { background: var(--bg-overlay); }
+.hive-dash-root .cost-ledger-name {
+  color: var(--text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.hive-dash-root .cost-ledger-tasks { color: var(--text-muted); font-size: 12px; }
+.hive-dash-root .cost-ledger-tok { color: var(--text-primary); }
+.hive-dash-root .cost-ledger-usd { color: var(--honey-500); }
+.hive-dash-root .cost-ledger-twd { color: var(--text-muted); font-size: 12px; }
+
+/* bar 視覺（byAgent/Provider/Model） */
+.hive-dash-root .cost-bars { display: flex; flex-direction: column; gap: 4px; }
+.hive-dash-root .cost-bar-row {
+  display: grid;
+  grid-template-columns: 90px 1fr auto auto;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 6px;
+  font-size: 13px;
+}
+.hive-dash-root .cost-bar-name {
+  color: var(--text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.hive-dash-root .cost-bar-track {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--bg-overlay);
+  overflow: hidden;
+}
+.hive-dash-root .cost-bar-fill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--honey-600), var(--honey-400));
+  transition: width 0.5s var(--ease);
+}
+.hive-dash-root .cost-bar-tok { color: var(--text-primary); }
+.hive-dash-root .cost-bar-usd { color: var(--honey-500); min-width: 64px; text-align: right; }
+
+/* tasksByProject */
+.hive-dash-root .cost-tasks { display: flex; flex-direction: column; gap: 2px; }
+.hive-dash-root .cost-task-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 9px 6px;
+  border-radius: 8px;
+  font-size: 13px;
+}
+.hive-dash-root .cost-task-row:hover { background: var(--bg-overlay); }
+.hive-dash-root .cost-task-name {
+  color: var(--text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.hive-dash-root .cost-task-num { color: var(--honey-500); }
+
+.hive-dash-root .cost-note {
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--text-muted);
+  border-top: 1px solid var(--comb-line);
+  padding-top: 14px;
+}
