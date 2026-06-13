@@ -1463,7 +1463,7 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
               帳本
             </button>
             <button ref={repoTabRef} className={`tab${tab === 'repo' ? ' active' : ''}`} onClick={() => switchTab('repo')}>
-              版圖
+              GitHub
             </button>
           </div>
 
